@@ -173,6 +173,8 @@ def page_model_training(preprocessor: Preprocessor, trainer: ModelTrainer, evalu
         progress = st.progress(10)
         try:
             X, y, label_encoder = preprocessor.prepare_xy(features_df, df)
+            # 保存已拟合的预处理器到会话，便于后续科研筛选/案例演示复用
+            st.session_state["preprocessor"] = preprocessor
             progress.progress(30)
 
             X_train, X_test, y_train, y_test = preprocessor.train_test_split(X, y, train_ratio=train_ratio)
@@ -221,9 +223,14 @@ def page_research_filter(preprocessor: Preprocessor, trainer: ModelTrainer):
     df = st.session_state.get("df")
     features_df = st.session_state.get("features")
     label_encoder = st.session_state.get("label_encoder")
+    # 优先使用会话中已拟合的预处理器
+    preprocessor = st.session_state.get("preprocessor") or preprocessor
 
     if model is None or df is None or features_df is None or label_encoder is None:
         st.warning("请先在‘模型训练报告’页面完成训练。")
+        return
+    if getattr(preprocessor, "_scaler", None) is None:
+        st.warning("预处理器尚未拟合，请先在‘模型训练报告’页面点击‘开始训练’。");
         return
 
     uploaded = st.file_uploader("上传待分类 CSV", type=["csv"])
@@ -275,7 +282,7 @@ def page_hr_interactive():
         classification = classify_by_rules(temp, feh)
         st.info(f"判定类型：{classification}")
         explain, img_url = explain_star_class(classification)
-        st.image(img_url, caption=classification, use_column_width=True)
+        st.image(img_url, caption=classification, use_container_width=True)
         st.write(explain)
 
     with col2:
@@ -293,6 +300,8 @@ def page_cases(preprocessor: Preprocessor, trainer: ModelTrainer):
 
     model = st.session_state.get("model")
     label_encoder = st.session_state.get("label_encoder")
+    # 使用训练阶段保存的预处理器
+    preprocessor = st.session_state.get("preprocessor") or preprocessor
     if model is None or label_encoder is None:
         st.warning("请先完成模型训练。")
         return

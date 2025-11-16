@@ -61,27 +61,38 @@ def plot_hr_diagram(df: pd.DataFrame, features_df: pd.DataFrame, highlight_point
     物理意义：
         赫罗图展示了恒星光度与颜色（温度）的关系，是理解恒星演化的核心图表。
     """
+    # 统一在一个 DataFrame 中构造所需列，避免传入长度不一致的 Series
     data = df.copy()
     if "g" in data.columns and "r" in data.columns:
         data["g_r"] = data["g"] - data["r"]
     elif "g_r" in features_df.columns:
-        data["g_r"] = features_df["g_r"]
+        # 对齐索引后再赋值，防止长度不一致
+        aligned = features_df.reindex(data.index)
+        data["g_r"] = aligned["g_r"].values
     else:
         # 无法计算颜色指数时，近似以温度替代
-        if "temp" in df.columns:
-            data["g_r"] = - (df["temp"] - df["temp"].mean()) / df["temp"].std(ddof=0)
+        if "temp" in data.columns:
+            data["g_r"] = - (data["temp"] - data["temp"].mean()) / data["temp"].std(ddof=0)
         else:
             data["g_r"] = 0.0
 
-    y = data["r"] if "r" in data.columns else (data.get("g", pd.Series([0]*len(data))) + 0.5)
-    fig = px.scatter(data.sample(min(len(data), 6000), random_state=42), x="g_r", y=y,
+    # 选择 y 轴列名，并确保存在于同一 DataFrame
+    y_col = "r" if "r" in data.columns else ("g" if "g" in data.columns else None)
+    if y_col is None:
+        # 构造一个代理星等列，以免绘图失败
+        y_col = "mag_proxy"
+        data[y_col] = 0.5
+
+    # 采样后绘图，x/y 使用列名字符串，避免 Narwhals 对齐报错
+    sample_df = data.sample(min(len(data), 6000), random_state=42)
+    fig = px.scatter(sample_df, x="g_r", y=y_col,
                      title="赫罗图（颜色指数 vs r 星等，采样）", opacity=0.6, height=420)
     fig.update_layout(xaxis_title="颜色指数 g-r（温度代理）", yaxis_title="r 星等（光度代理）", yaxis_autorange="reversed")
 
     if highlight_point:
         # 简单温度到颜色指数的近似映射：温度高 -> 颜色更蓝 (g-r 更小)
         gr_point = - (temp - 6000) / 3000
-        fig.add_scatter(x=[gr_point], y=[y.mean()], mode="markers", marker=dict(size=12, color="red"), name="当前选择")
+        fig.add_scatter(x=[gr_point], y=[sample_df[y_col].mean()], mode="markers", marker=dict(size=12, color="red"), name="当前选择")
     return fig
 
 
