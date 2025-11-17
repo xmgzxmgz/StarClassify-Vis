@@ -1,7 +1,60 @@
+# 核心框架
 streamlit>=1.35.0
-plotly>=5.20.0
 pandas>=2.2.2
 numpy>=1.26.4
+
+# 机器学习
 scikit-learn>=1.4.2
+scikit-optimize>=0.9.0
+imbalanced-learn>=0.12.3
+shap>=0.44.0
+
+# 可视化
+plotly>=5.20.0
 matplotlib>=3.8.4
 seaborn>=0.13.2
+
+# 数据处理
+openpyxl>=3.1.2
+xlrd>=2.0.1
+
+# 报告生成
+reportlab>=4.0.0
+fpdf2>=2.7.5
+Pillow>=10.3.0
+
+# 文件处理
+zipfile36>=0.1.3
+py7zr>=0.20.0
+
+# 国际化
+babel>=2.15.0
+
+# 系统监控
+psutil>=5.9.8
+
+# 缓存和存储
+redis>=5.0.4
+joblib>=1.4.2
+
+# 网络请求
+requests>=2.31.0
+urllib3>=2.2.1
+
+# 数据验证
+pydantic>=2.7.1
+
+# 日志
+loguru>=0.7.2
+
+# 性能优化
+numba>=0.59.1
+
+# 科学计算
+scipy>=1.13.0
+
+# 时间处理
+python-dateutil>=2.9.0
+
+# 环境管理
+python-dotenv>=1.0.1
