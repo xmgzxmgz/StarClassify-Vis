@@ -3,6 +3,10 @@ export type CsvOverview = {
   rowCount: number;
   missingCells: number;
   numericColumns: string[];
+  columnStats: Record<
+    string,
+    { missing: number; mean?: number; min?: number; max?: number }
+  >;
 };
 
 /**
@@ -55,22 +59,41 @@ export async function parseCsvOverview(file: File): Promise<CsvOverview> {
   }
 
   let missingCells = 0;
-  const sampleLimit = Math.min(lines.length, 800);
+  // Initialize stats
+  const stats: Record<
+    string,
+    { missing: number; sum: number; count: number; min: number; max: number }
+  > = {};
+  for (const h of headers) {
+    stats[h] = { missing: 0, sum: 0, count: 0, min: Infinity, max: -Infinity };
+  }
+
+  const sampleLimit = lines.length; // Process all lines for accurate stats (client-side is fast enough for typical <10MB files)
   const numericHits = new Array(headers.length).fill(0);
   const totalHits = new Array(headers.length).fill(0);
 
   for (let i = 1; i < sampleLimit; i++) {
     const cells = splitCsvLine(lines[i]);
     for (let c = 0; c < headers.length; c++) {
+      const header = headers[c];
       const v = cells[c] ?? "";
+
       if (v === "") {
         missingCells++;
+        if (stats[header]) stats[header].missing++;
         continue;
       }
+
       totalHits[c] += 1;
       const n = Number(v);
       if (!Number.isNaN(n) && Number.isFinite(n)) {
         numericHits[c] += 1;
+        if (stats[header]) {
+          stats[header].sum += n;
+          stats[header].count++;
+          if (n < stats[header].min) stats[header].min = n;
+          if (n > stats[header].max) stats[header].max = n;
+        }
       }
     }
   }
@@ -80,10 +103,25 @@ export async function parseCsvOverview(file: File): Promise<CsvOverview> {
     return numericHits[idx] / totalHits[idx] >= 0.9;
   });
 
+  const columnStats: Record<
+    string,
+    { missing: number; mean?: number; min?: number; max?: number }
+  > = {};
+  for (const h of headers) {
+    const s = stats[h];
+    columnStats[h] = { missing: s.missing };
+    if (numericColumns.includes(h) && s.count > 0) {
+      columnStats[h].mean = s.sum / s.count;
+      columnStats[h].min = s.min;
+      columnStats[h].max = s.max;
+    }
+  }
+
   return {
     headers,
     rowCount: lines.length - 1,
     missingCells,
     numericColumns,
+    columnStats,
   };
 }

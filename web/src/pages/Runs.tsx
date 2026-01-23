@@ -6,6 +6,8 @@ import ErrorBanner from "@/components/ErrorBanner";
 import { Button } from "@/components/Button";
 import { apiFetch } from "@/api/http";
 import type { RunListResponse, RunResult } from "@/types";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { X } from "lucide-react";
 
 function fmtTime(iso: string) {
   const d = new Date(iso);
@@ -35,6 +37,10 @@ export default function Runs() {
   const [error, setError] = useState<string>("");
   const [data, setData] = useState<RunListResponse | null>(null);
   const [selected, setSelected] = useState<RunResult | null>(null);
+  
+  // Multi-select for comparison
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
 
   const totalPages = useMemo(() => {
     if (!data) return 1;
@@ -59,6 +65,20 @@ export default function Runs() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const toggleCompare = (id: string) => {
+      setCompareIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const compareData = useMemo(() => {
+      if (!data) return [];
+      return data.items.filter(r => compareIds.includes(r.id)).map(r => ({
+          name: r.request.datasetName.substring(0, 15),
+          accuracy: r.metrics.accuracy,
+          f1: r.metrics.f1,
+          varSmoothing: r.request.gnbParams?.varSmoothing
+      }));
+  }, [data, compareIds]);
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 py-6">
@@ -87,6 +107,7 @@ export default function Runs() {
                   setQuery("");
                   setPage(1);
                   setSelected(null);
+                  setCompareIds([]);
                   setTimeout(load, 0);
                 }}
                 disabled={busy}
@@ -98,6 +119,15 @@ export default function Runs() {
         </Card>
 
         <Card title="记录列表">
+            <div className="mb-4 flex items-center justify-between">
+                 <div className="text-sm text-white/50">已选择 {compareIds.length} 项进行对比</div>
+                 {compareIds.length > 1 && (
+                     <Button onClick={() => setShowCompare(true)} className="bg-green-600 hover:bg-green-500">
+                         开始对比
+                     </Button>
+                 )}
+            </div>
+
           {error ? <ErrorBanner title="加载失败" message={error} /> : null}
           {!error && data && data.items.length === 0 ? (
             <EmptyState
@@ -112,6 +142,15 @@ export default function Runs() {
               <table className="min-w-full border-separate border-spacing-0 text-sm">
                 <thead>
                   <tr className="bg-white/5">
+                    <th className="px-3 py-2 text-left font-medium text-white/80 w-10">
+                       <input type="checkbox" 
+                            checked={compareIds.length === data.items.length}
+                            onChange={() => {
+                                if (compareIds.length === data.items.length) setCompareIds([]);
+                                else setCompareIds(data.items.map(r => r.id));
+                            }}
+                       />
+                    </th>
                     <th className="px-3 py-2 text-left font-medium text-white/80">
                       时间
                     </th>
@@ -139,6 +178,12 @@ export default function Runs() {
                       className="cursor-pointer hover:bg-white/5"
                       onClick={() => setSelected(r)}
                     >
+                      <td className="border-b border-white/5 px-3 py-2" onClick={e => e.stopPropagation()}>
+                          <input type="checkbox" 
+                            checked={compareIds.includes(r.id)}
+                            onChange={() => toggleCompare(r.id)}
+                          />
+                      </td>
                       <td className="border-b border-white/5 px-3 py-2 text-white/70">
                         {fmtTime(r.createdAt)}
                       </td>
@@ -199,6 +244,57 @@ export default function Runs() {
           </div>
         </Card>
       </div>
+
+      {/* Comparison Modal */}
+      {showCompare && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+              <div className="w-full max-w-4xl rounded-xl border border-white/10 bg-[#0B1220] p-6 shadow-2xl">
+                  <div className="mb-6 flex items-center justify-between">
+                      <h2 className="text-xl font-bold">实验对比分析</h2>
+                      <button onClick={() => setShowCompare(false)} className="rounded-full p-1 hover:bg-white/10">
+                          <X className="h-6 w-6" />
+                      </button>
+                  </div>
+                  
+                  <div className="h-[400px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={compareData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                              <XAxis dataKey="name" stroke="#ffffff80" />
+                              <YAxis stroke="#ffffff80" />
+                              <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151' }} />
+                              <Legend />
+                              <Bar dataKey="accuracy" name="准确率" fill="#3b82f6" />
+                              <Bar dataKey="f1" name="F1 分数" fill="#10b981" />
+                          </BarChart>
+                      </ResponsiveContainer>
+                  </div>
+
+                  <div className="mt-6 overflow-auto">
+                      <table className="w-full text-sm text-left">
+                          <thead>
+                              <tr className="border-b border-white/10 text-white/60">
+                                  <th className="py-2">实验名称</th>
+                                  <th className="py-2">Var Smoothing</th>
+                                  <th className="py-2">Accuracy</th>
+                                  <th className="py-2">F1</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              {compareData.map((d, i) => (
+                                  <tr key={i} className="border-b border-white/5">
+                                      <td className="py-2 font-medium">{d.name}</td>
+                                      <td className="py-2 font-mono text-xs">{d.varSmoothing?.toExponential(2) ?? "Default"}</td>
+                                      <td className="py-2 text-blue-400">{fmt(d.accuracy)}</td>
+                                      <td className="py-2 text-green-400">{fmt(d.f1)}</td>
+                                  </tr>
+                              ))}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+          </div>
+      )}
 
       {selected ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 p-4 sm:items-center">
@@ -298,10 +394,7 @@ export default function Runs() {
                   setSelected(null);
                 }}
               >
-                加载到实验台
-              </Button>
-              <Button variant="secondary" onClick={() => setSelected(null)}>
-                关闭
+                加载配置并重试
               </Button>
             </div>
           </div>
