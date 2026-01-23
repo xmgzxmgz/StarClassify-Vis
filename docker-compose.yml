@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    restart: always
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -12,7 +13,9 @@ services:
 
   api:
     build:
-      context: ./api
+      context: .
+      dockerfile: api/Dockerfile
+    restart: always
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/starvis
       CORS_ORIGINS: http://localhost:8080
@@ -24,6 +27,7 @@ services:
   web:
     build:
       context: ./web
+    restart: always
     depends_on:
       - api
     ports:
