@@ -1,37 +1,73 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
+    container_name: starvis-db
     restart: always
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: starvis
+      POSTGRES_INITDB_ARGS: "-c timezone=UTC"
     ports:
       - "5433:5432"
     volumes:
       - starvis_pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - starvis-network
 
   api:
     build:
       context: .
       dockerfile: api/Dockerfile
+    container_name: starvis-api
     restart: always
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/starvis
-      CORS_ORIGINS: http://localhost:8080
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
+      PYTHONUNBUFFERED: 1
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
+    networks:
+      - starvis-network
+    volumes:
+      - ./api:/app/api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   web:
     build:
       context: ./web
+      dockerfile: Dockerfile
+    container_name: starvis-web
     restart: always
     depends_on:
       - api
     ports:
       - "8080:80"
+    networks:
+      - starvis-network
+    environment:
+      VITE_API_URL: http://api:8000
 
 volumes:
   starvis_pgdata:
+    driver: local
+
+networks:
+  starvis-network:
+    driver: bridge

@@ -44,29 +44,29 @@ export default function LabResultsPanel(props: {
 
             return (
               <div className="mt-3 space-y-4">
-                <div className="rounded-xl border border-white/10 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 p-4 shadow-[0_0_30px_rgba(59,130,246,0.12)]">
+                <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-500/10 dark:via-transparent dark:to-purple-500/10 p-4 shadow-[0_0_30px_rgba(59,130,246,0.08)] dark:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="space-y-2">
-                      <div className="text-sm font-semibold text-white">
+                      <div className="text-sm font-semibold text-slate-900 dark:text-white">
                         分析总览
                       </div>
-                      <div className="text-xs text-white/60">
+                      <div className="text-xs text-slate-600 dark:text-white/60">
                         {props.result.request.datasetName} · 目标列{" "}
                         {props.result.request.targetColumn} · 特征{" "}
                         {props.result.request.featureColumns.length} 列
                       </div>
-                      <div className="grid grid-cols-2 gap-3 text-xs text-white/70 sm:grid-cols-4">
-                        <div className="rounded-lg bg-white/5 p-2">
+                      <div className="grid grid-cols-2 gap-3 text-xs text-slate-700 dark:text-white/70 sm:grid-cols-4">
+                        <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-2">
                           样本 {total}
                         </div>
-                        <div className="rounded-lg bg-white/5 p-2">
+                        <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-2">
                           类别 {labels.length}
                         </div>
-                        <div className="rounded-lg bg-white/5 p-2">
+                        <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-2">
                           测试占比{" "}
                           {Math.round(props.result.request.testSize * 100)}%
                         </div>
-                        <div className="rounded-lg bg-white/5 p-2">
+                        <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-2">
                           模型 GNB
                         </div>
                       </div>

@@ -103,37 +103,27 @@ export default function ResearcherWorkspace() {
         "⚠️ 数据量过少 (<50行)，可能导致模型过拟合。建议扩充数据。",
       );
     }
-
+    
     // Check per-column stats
     for (const [col, stats] of Object.entries(ov.columnStats)) {
-      if (stats.missing > 0) {
-        const isNumeric = ov.numericColumns.includes(col);
-        const action = isNumeric
-          ? `建议填充均值 (${stats.mean?.toFixed(2)})`
-          : "建议填充众数";
-        suggestions.push(
-          `ℹ️ 列 '${col}' 存在 ${stats.missing} 个缺失值，${action}。`,
-        );
-      }
-
-      // Simple "abnormal" check for specific known columns (e.g., temperature shouldn't be negative or zero usually, but depends on scale)
-      // Here we just check for extreme outliers relative to mean if we had stddev, but we don't.
-      // We can check if min/max are valid numbers.
-      if (
-        col.toLowerCase().includes("temp") &&
-        stats.min !== undefined &&
-        stats.min < 0
-      ) {
-        suggestions.push(
-          `⚠️ 列 '${col}' 存在负值 (${stats.min})，物理上可能异常，建议检查。`,
-        );
-      }
+        if (stats.missing > 0) {
+            const isNumeric = ov.numericColumns.includes(col);
+            const action = isNumeric ? `建议填充均值 (${stats.mean?.toFixed(2)})` : "建议填充众数";
+            suggestions.push(`ℹ️ 列 '${col}' 存在 ${stats.missing} 个缺失值，${action}。`);
+        }
+        
+        // Simple "abnormal" check for specific known columns (e.g., temperature shouldn't be negative or zero usually, but depends on scale)
+        // Here we just check for extreme outliers relative to mean if we had stddev, but we don't. 
+        // We can check if min/max are valid numbers.
+        if (col.toLowerCase().includes("temp") && stats.min !== undefined && stats.min < 0) {
+            suggestions.push(`⚠️ 列 '${col}' 存在负值 (${stats.min})，物理上可能异常，建议检查。`);
+        }
     }
-
+    
     if (suggestions.length === 0) {
-      suggestions.push("✅ 数据质量良好，未发现明显缺失或异常。");
+        suggestions.push("✅ 数据质量良好，未发现明显缺失或异常。");
     }
-
+    
     setQualityReport(suggestions);
   }
 

@@ -3,10 +3,7 @@ export type CsvOverview = {
   rowCount: number;
   missingCells: number;
   numericColumns: string[];
-  columnStats: Record<
-    string,
-    { missing: number; mean?: number; min?: number; max?: number }
-  >;
+  columnStats: Record<string, { missing: number; mean?: number; min?: number; max?: number }>;
 };
 
 /**
@@ -60,10 +57,7 @@ export async function parseCsvOverview(file: File): Promise<CsvOverview> {
 
   let missingCells = 0;
   // Initialize stats
-  const stats: Record<
-    string,
-    { missing: number; sum: number; count: number; min: number; max: number }
-  > = {};
+  const stats: Record<string, { missing: number; sum: number; count: number; min: number; max: number }> = {};
   for (const h of headers) {
     stats[h] = { missing: 0, sum: 0, count: 0, min: Infinity, max: -Infinity };
   }
@@ -77,7 +71,7 @@ export async function parseCsvOverview(file: File): Promise<CsvOverview> {
     for (let c = 0; c < headers.length; c++) {
       const header = headers[c];
       const v = cells[c] ?? "";
-
+      
       if (v === "") {
         missingCells++;
         if (stats[header]) stats[header].missing++;
@@ -103,17 +97,14 @@ export async function parseCsvOverview(file: File): Promise<CsvOverview> {
     return numericHits[idx] / totalHits[idx] >= 0.9;
   });
 
-  const columnStats: Record<
-    string,
-    { missing: number; mean?: number; min?: number; max?: number }
-  > = {};
+  const columnStats: Record<string, { missing: number; mean?: number; min?: number; max?: number }> = {};
   for (const h of headers) {
     const s = stats[h];
     columnStats[h] = { missing: s.missing };
     if (numericColumns.includes(h) && s.count > 0) {
-      columnStats[h].mean = s.sum / s.count;
-      columnStats[h].min = s.min;
-      columnStats[h].max = s.max;
+        columnStats[h].mean = s.sum / s.count;
+        columnStats[h].min = s.min;
+        columnStats[h].max = s.max;
     }
   }
 
