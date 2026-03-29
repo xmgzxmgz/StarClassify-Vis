@@ -88,7 +88,7 @@ export default function Runs() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none sm:flex-1"
+              className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none sm:flex-1"
               placeholder="按数据集名关键字筛选"
             />
             <div className="flex items-center gap-3">
@@ -138,11 +138,11 @@ export default function Runs() {
           ) : null}
 
           {data && data.items.length > 0 ? (
-            <div className="mt-3 overflow-auto rounded-lg border border-white/10">
+            <div className="mt-3 overflow-auto rounded-lg border border-slate-200 dark:border-white/10">
               <table className="min-w-full border-separate border-spacing-0 text-sm">
                 <thead>
-                  <tr className="bg-white/5">
-                    <th className="px-3 py-2 text-left font-medium text-white/80 w-10">
+                  <tr className="bg-slate-100 dark:bg-white/5">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80 w-10">
                        <input type="checkbox" 
                             checked={compareIds.length === data.items.length}
                             onChange={() => {
@@ -151,22 +151,22 @@ export default function Runs() {
                             }}
                        />
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-white/80">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       时间
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-white/80">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       数据集
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-white/80">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       目标列
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-white/80">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       Accuracy
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-white/80">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       F1
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-white/80">
+                    <th className="px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       操作
                     </th>
                   </tr>
@@ -175,31 +175,31 @@ export default function Runs() {
                   {data.items.map((r) => (
                     <tr
                       key={r.id}
-                      className="cursor-pointer hover:bg-white/5"
+                      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5"
                       onClick={() => setSelected(r)}
                     >
-                      <td className="border-b border-white/5 px-3 py-2" onClick={e => e.stopPropagation()}>
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2" onClick={e => e.stopPropagation()}>
                           <input type="checkbox" 
                             checked={compareIds.includes(r.id)}
                             onChange={() => toggleCompare(r.id)}
                           />
                       </td>
-                      <td className="border-b border-white/5 px-3 py-2 text-white/70">
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2 text-slate-600 dark:text-white/70">
                         {fmtTime(r.createdAt)}
                       </td>
-                      <td className="border-b border-white/5 px-3 py-2 text-white/70">
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2 text-slate-600 dark:text-white/70">
                         {r.request.datasetName}
                       </td>
-                      <td className="border-b border-white/5 px-3 py-2 text-white/70">
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2 text-slate-600 dark:text-white/70">
                         {r.request.targetColumn}
                       </td>
-                      <td className="border-b border-white/5 px-3 py-2 text-white/70">
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2 text-slate-600 dark:text-white/70">
                         {fmt(r.metrics.accuracy)}
                       </td>
-                      <td className="border-b border-white/5 px-3 py-2 text-white/70">
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2 text-slate-600 dark:text-white/70">
                         {fmt(r.metrics.f1)}
                       </td>
-                      <td className="border-b border-white/5 px-3 py-2">
+                      <td className="border-b border-slate-200 dark:border-white/5 px-3 py-2">
                         <Button
                           variant="secondary"
                           className="h-8 px-2 py-1 text-xs"
@@ -219,7 +219,7 @@ export default function Runs() {
           ) : null}
 
           <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-white/50">
+            <div className="text-sm text-slate-600 dark:text-white/50">
               共 {data?.total ?? 0} 条
             </div>
             <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ export default function Runs() {
               >
                 上一页
               </Button>
-              <div className="text-sm text-white/70">
+              <div className="text-sm text-slate-700 dark:text-white/70">
                 {page} / {totalPages}
               </div>
               <Button
@@ -247,12 +247,12 @@ export default function Runs() {
 
       {/* Comparison Modal */}
       {showCompare && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
-              <div className="w-full max-w-4xl rounded-xl border border-white/10 bg-[#0B1220] p-6 shadow-2xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-sm p-6">
+              <div className="w-full max-w-4xl rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1220] p-6 shadow-2xl">
                   <div className="mb-6 flex items-center justify-between">
-                      <h2 className="text-xl font-bold">实验对比分析</h2>
-                      <button onClick={() => setShowCompare(false)} className="rounded-full p-1 hover:bg-white/10">
-                          <X className="h-6 w-6" />
+                      <h2 className="text-xl font-bold text-slate-900 dark:text-white">实验对比分析</h2>
+                      <button onClick={() => setShowCompare(false)} className="rounded-full p-1 hover:bg-slate-200 dark:hover:bg-white/10">
+                          <X className="h-6 w-6 text-slate-900 dark:text-white" />
                       </button>
                   </div>
                   
@@ -298,11 +298,11 @@ export default function Runs() {
 
       {selected ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 p-4 sm:items-center">
-          <div className="w-full max-w-3xl rounded-xl border border-white/10 bg-[#111A2E] p-4 shadow-xl">
+          <div className="w-full max-w-3xl rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111A2E] p-4 shadow-xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-white">记录详情</div>
-                <div className="mt-1 text-sm text-white/60">
+                <div className="text-sm font-semibold text-slate-900 dark:text-white">记录详情</div>
+                <div className="mt-1 text-sm text-slate-600 dark:text-white/60">
                   {selected.request.datasetName}
                 </div>
               </div>
@@ -316,48 +316,48 @@ export default function Runs() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-lg bg-white/5 p-3">
-                <div className="text-xs text-white/50">Accuracy</div>
-                <div className="mt-1 text-sm font-semibold text-white">
+              <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-3">
+                <div className="text-xs text-slate-600 dark:text-white/50">Accuracy</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
                   {fmt(selected.metrics.accuracy)}
                 </div>
               </div>
-              <div className="rounded-lg bg-white/5 p-3">
-                <div className="text-xs text-white/50">Precision</div>
-                <div className="mt-1 text-sm font-semibold text-white">
+              <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-3">
+                <div className="text-xs text-slate-600 dark:text-white/50">Precision</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
                   {fmt(selected.metrics.precision)}
                 </div>
               </div>
-              <div className="rounded-lg bg-white/5 p-3">
-                <div className="text-xs text-white/50">Recall</div>
-                <div className="mt-1 text-sm font-semibold text-white">
+              <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-3">
+                <div className="text-xs text-slate-600 dark:text-white/50">Recall</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
                   {fmt(selected.metrics.recall)}
                 </div>
               </div>
-              <div className="rounded-lg bg-white/5 p-3">
-                <div className="text-xs text-white/50">F1</div>
-                <div className="mt-1 text-sm font-semibold text-white">
+              <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-3">
+                <div className="text-xs text-slate-600 dark:text-white/50">F1</div>
+                <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
                   {fmt(selected.metrics.f1)}
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 text-sm text-white/70">
+            <div className="mt-4 text-sm text-slate-700 dark:text-white/70">
               目标列：{selected.request.targetColumn}；特征列：
               {selected.request.featureColumns.join(", ")}
             </div>
 
-            <div className="mt-4 overflow-auto rounded-lg border border-white/10">
+            <div className="mt-4 overflow-auto rounded-lg border border-slate-200 dark:border-white/10">
               <table className="min-w-full border-separate border-spacing-0 text-sm">
                 <thead>
-                  <tr className="bg-white/5">
-                    <th className="sticky left-0 z-10 w-32 border-b border-white/10 bg-white/5 px-3 py-2 text-left font-medium text-white/80">
+                  <tr className="bg-slate-100 dark:bg-white/5">
+                    <th className="sticky left-0 z-10 w-32 border-b border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80">
                       混淆矩阵
                     </th>
                     {selected.labels.map((l) => (
                       <th
                         key={l}
-                        className="border-b border-white/10 px-3 py-2 text-left font-medium text-white/80"
+                        className="border-b border-slate-200 dark:border-white/10 px-3 py-2 text-left font-medium text-slate-700 dark:text-white/80"
                       >
                         预测:{l}
                       </th>
@@ -368,15 +368,15 @@ export default function Runs() {
                   {selected.confusionMatrix.map((row, i) => (
                     <tr
                       key={selected.labels[i] ?? String(i)}
-                      className="hover:bg-white/5"
+                      className="hover:bg-slate-50 dark:hover:bg-white/5"
                     >
-                      <td className="sticky left-0 z-10 border-b border-white/5 bg-[#111A2E] px-3 py-2 font-medium text-white/80">
+                      <td className="sticky left-0 z-10 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#111A2E] px-3 py-2 font-medium text-slate-700 dark:text-white/80">
                         实际:{selected.labels[i] ?? "?"}
                       </td>
                       {row.map((v, j) => (
                         <td
                           key={j}
-                          className="border-b border-white/5 px-3 py-2 text-white/70"
+                          className="border-b border-slate-200 dark:border-white/5 px-3 py-2 text-slate-600 dark:text-white/70"
                         >
                           {v}
                         </td>

@@ -24,7 +24,7 @@ export default function AppHeader() {
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700">
             <FlaskConical className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </span>
-          星体分类可视化实验台
+          恒星分类可视化实验台
         </Link>
 
         <nav className="flex items-center gap-2 text-sm">

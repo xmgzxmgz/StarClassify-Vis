@@ -81,14 +81,14 @@ ${
     <div className="mx-auto max-w-[1200px] px-6 py-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[350px_1fr]">
         {/* Interactive Controls */}
-        <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-          <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-purple-300">
+        <div className="rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-white/5 p-6 backdrop-blur">
+          <h2 className="mb-6 flex items-center gap-3 text-2xl font-bold text-purple-600 dark:text-purple-300">
             <Telescope className="h-6 w-6" /> 恒星探索仪
           </h2>
 
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block text-sm font-medium text-white/80">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-white/80">
                 表面温度 (K)
               </label>
               <input
@@ -100,15 +100,15 @@ ${
                 onChange={(e) => setTemperature(Number(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-red-500 via-yellow-200 to-blue-500"
               />
-              <div className="mt-1 flex justify-between text-xs text-white/50">
+              <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-white/50">
                 <span>2000K (冷)</span>
-                <span className="font-mono text-white">{temperature} K</span>
+                <span className="font-mono text-slate-900 dark:text-white">{temperature} K</span>
                 <span>40000K (热)</span>
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-white/80">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-white/80">
                 光度 (相对于太阳)
               </label>
               <input
@@ -122,9 +122,9 @@ ${
                 }
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-white/20"
               />
-              <div className="mt-1 flex justify-between text-xs text-white/50">
+              <div className="mt-1 flex justify-between text-xs text-slate-600 dark:text-white/50">
                 <span>暗淡</span>
-                <span className="font-mono text-white">
+                <span className="font-mono text-slate-900 dark:text-white">
                   {luminosity.toFixed(2)} L☉
                 </span>
                 <span>明亮</span>
@@ -132,15 +132,15 @@ ${
             </div>
           </div>
 
-          <div className="mt-8 rounded-xl bg-black/40 p-6 text-center border border-white/10">
-            <div className="text-sm text-white/60">预测类型</div>
+          <div className="mt-8 rounded-xl bg-slate-100 dark:bg-black/40 p-6 text-center border border-slate-300 dark:border-white/10">
+            <div className="text-sm text-slate-600 dark:text-white/60">预测类型</div>
             <div
               className="my-2 text-6xl font-black"
               style={{ color: predictedType.color }}
             >
               {predictedType.type}
             </div>
-            <div className="text-lg font-medium text-white">
+            <div className="text-lg font-medium text-slate-900 dark:text-white">
               {predictedType.desc}
             </div>
             <div className="mt-4 flex justify-center">
@@ -165,11 +165,11 @@ ${
         </div>
 
         {/* Visualization: Simplified HR Diagram */}
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#050810] p-6">
-          <h3 className="mb-4 text-xl font-bold text-white/80">
+        <div className="relative overflow-hidden rounded-xl border border-slate-300 dark:border-white/10 bg-slate-200 dark:bg-[#050810] p-6">
+          <h3 className="mb-4 text-xl font-bold text-slate-900 dark:text-white/80">
             赫罗图 (H-R Diagram)
           </h3>
-          <p className="mb-6 text-sm text-white/50">
+          <p className="mb-6 text-sm text-slate-700 dark:text-white/50">
             赫罗图展示了恒星温度与光度的关系。大部分恒星位于对角线的"主序带"上。
           </p>
 
@@ -184,7 +184,7 @@ ${
                   name="温度"
                   unit="K"
                   reversed={true}
-                  stroke="#ffffff50"
+                  stroke="#64748b"
                 />
                 <YAxis
                   type="number"
@@ -193,14 +193,15 @@ ${
                   unit="L☉"
                   scale="log"
                   domain={["auto", "auto"]}
-                  stroke="#ffffff50"
+                  stroke="#64748b"
                 />
                 <ZAxis type="number" dataKey="r" range={[10, 100]} />
                 <Tooltip
                   cursor={{ strokeDasharray: "3 3" }}
                   contentStyle={{
-                    backgroundColor: "#1f2937",
-                    borderColor: "#374151",
+                    backgroundColor: "#f1f5f9",
+                    borderColor: "#cbd5e1",
+                    color: "#1e293b"
                   }}
                 />
 
@@ -208,7 +209,7 @@ ${
                 <Scatter
                   name="Background Stars"
                   data={bgStars}
-                  fill="#ffffff30"
+                  fill="#9ca3af"
                   shape="circle"
                 />
 
@@ -231,25 +232,25 @@ ${
 
           {/* Overlay Info */}
           <div className="absolute top-6 right-6 text-right">
-            <div className="flex items-center justify-end gap-2 text-yellow-400">
-              <Star className="h-4 w-4 fill-yellow-400" />
-              <span className="font-bold">当前位置</span>
+            <div className="flex items-center justify-end gap-2 text-yellow-600 dark:text-yellow-400">
+              <Star className="h-4 w-4 fill-yellow-600 dark:fill-yellow-400" />
+              <span className="font-bold text-slate-900 dark:text-white">当前位置</span>
             </div>
           </div>
 
           {/* Report Modal Overlay */}
           {showReport && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 backdrop-blur-sm p-8">
-              <div className="w-full max-w-md rounded-xl bg-[#1a1f2e] p-6 shadow-2xl border border-purple-500/30">
-                <h4 className="mb-4 text-lg font-bold text-purple-300">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-sm p-8">
+              <div className="w-full max-w-md rounded-xl bg-white dark:bg-[#1a1f2e] p-6 shadow-2xl border border-slate-300 dark:border-purple-500/30">
+                <h4 className="mb-4 text-lg font-bold text-purple-600 dark:text-purple-300">
                   科普观测报告
                 </h4>
-                <div className="mb-6 whitespace-pre-wrap text-sm leading-relaxed text-white/90">
+                <div className="mb-6 whitespace-pre-wrap text-sm leading-relaxed text-slate-900 dark:text-white/90">
                   {reportText}
                 </div>
                 <button
                   onClick={() => setShowReport(false)}
-                  className="w-full rounded-lg bg-white/10 py-2 text-sm hover:bg-white/20"
+                  className="w-full rounded-lg bg-slate-200 dark:bg-white/10 py-2 text-sm text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20"
                 >
                   关闭
                 </button>

@@ -11,7 +11,7 @@ from api.settings import get_cors_origins
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="星体分类可视化实验台 API",
+        title="恒星分类可视化实验台 API",
         version="0.1.0",
     )
 

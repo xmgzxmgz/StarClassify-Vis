@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-生成高质量的星体分类示例数据集
+生成高质量的恒星分类示例数据集
 用于 StarClassify-Vis 系统测试
 """
 
@@ -12,7 +12,7 @@ from pathlib import Path
 
 def generate_star_data(num_samples=1000):
     """
-    生成星体分类数据集
+    生成恒星分类数据集
     
     特征:
     - u_mag: 紫外波段星等
@@ -131,7 +131,7 @@ def save_dataset(data, filename):
 
 def main():
     print("=" * 70)
-    print("🌟 星体分类数据集生成器")
+    print("🌟 恒星分类数据集生成器")
     print("=" * 70)
     print()
     

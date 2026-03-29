@@ -9,7 +9,7 @@
   - <1024px：改为单列堆叠；图表与表格可横向滚动。
 
 ### Meta Information（默认）
-- title：星体分类可视化实验台
+- title：恒星分类可视化实验台
 - description：基于高斯朴素贝叶斯的训练/预测与结果可视化，并可将实验记录存储到数据库。
 - Open Graph：`og:title`、`og:description` 与 title/description 一致；`og:type=website`。
 
@@ -31,7 +31,7 @@
 
 ## 1. 实验台页面（/）
 ### Meta
-- title：实验台｜星体分类可视化实验台
+- title：实验台｜恒星分类可视化实验台
 - description：上传数据并使用高斯朴素贝叶斯进行训练/预测与可视化。
 
 ### Page Structure
@@ -74,7 +74,7 @@
 
 ## 2. 结果记录页面（/runs）
 ### Meta
-- title：结果记录｜星体分类可视化实验台
+- title：结果记录｜恒星分类可视化实验台
 - description：浏览历史实验记录并查看详情、复现实验配置。
 
 ### Page Structure

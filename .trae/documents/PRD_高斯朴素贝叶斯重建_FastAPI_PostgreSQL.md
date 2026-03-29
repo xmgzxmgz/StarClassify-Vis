@@ -1,5 +1,5 @@
 ## 1. Product Overview
-将现有项目推倒重建为“星体分类可视化实验台”：仅提供高斯朴素贝叶斯（Gaussian Naive Bayes）训练/预测与可视化。
+将现有项目推倒重建为“恒星分类可视化实验台”：仅提供高斯朴素贝叶斯（Gaussian Naive Bayes）训练/预测与可视化。
 新增 FastAPI 后端与 PostgreSQL 持久化每次实验结果，前端统一设计风格并确保端到端可用。
 
 ## 2. Core Features

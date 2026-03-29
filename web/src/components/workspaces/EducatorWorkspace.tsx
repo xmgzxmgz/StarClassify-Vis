@@ -42,27 +42,61 @@ export default function EducatorWorkspace() {
       id: "overfit",
       title: "过拟合演示",
       desc: "展示当训练数据过少或模型过于复杂时的表现。",
-      datasetUrl: "/datasets/sdss_like_tiny.csv",
       config: { testSize: 0.1, varSmoothing: "1e-11" },
     },
     {
       id: "feature_impact",
       title: "特征选择影响",
       desc: "对比只使用单一特征与使用所有特征的区别。",
-      datasetUrl: "/datasets/sdss_like_small.csv",
       config: { testSize: 0.3, varSmoothing: "1e-9" },
+    },
+    {
+      id: "balanced",
+      title: "数据平衡性",
+      desc: "展示不同类别比例对模型性能的影响。",
+      config: { testSize: 0.2, varSmoothing: "1e-9" },
     },
   ];
 
   async function loadTemplate(t: (typeof templates)[0]) {
     setActiveTemplate(t.id);
     setBusy(true);
+    setError(""); // 清除旧错误
+    setResult(null); // 清除旧结果
     try {
-      const response = await fetch(t.datasetUrl);
-      const blob = await response.blob();
-      const loadedFile = new File([blob], t.datasetUrl.split("/").pop()!, {
-        type: "text/csv",
-      });
+      // 使用本地示例数据
+      let csvData = "";
+      if (t.id === "overfit") {
+        // 小数据集用于演示过拟合 - 至少需要 10 行有效数据
+        csvData = "class,u_mag,g_mag,r_mag,i_mag,z_mag,redshift,petroR50_u,petroR50_r\n" +
+          Array.from({length: 30}, (_, i) => {
+            const types = ["STAR", "GALAXY", "QSO"];
+            const type = types[i % 3];
+            const base = i % 3 === 0 ? 15 : i % 3 === 1 ? 18 : 19;
+            return `${type},${base + Math.random()},${base - 0.3 + Math.random()},${base - 0.6 + Math.random()},${base - 0.8 + Math.random()},${base - 1 + Math.random()},${Math.random() * 2},${1 + Math.random()},${1 + Math.random()}`;
+          }).join("\n");
+      } else if (t.id === "feature_impact") {
+        // 中等数据集
+        csvData = "class,u_mag,g_mag,r_mag,i_mag,z_mag,redshift,petroR50_u,petroR50_r\n" +
+          Array.from({length: 80}, (_, i) => {
+            const types = ["STAR", "GALAXY", "QSO"];
+            const type = types[i % 3];
+            const base = i % 3 === 0 ? 15 : i % 3 === 1 ? 18 : 19;
+            return `${type},${base + Math.random()},${base - 0.3 + Math.random()},${base - 0.6 + Math.random()},${base - 0.8 + Math.random()},${base - 1 + Math.random()},${Math.random() * 2},${1 + Math.random()},${1 + Math.random()}`;
+          }).join("\n");
+      } else {
+        // 平衡数据集
+        csvData = "class,u_mag,g_mag,r_mag,i_mag,z_mag,redshift,petroR50_u,petroR50_r\n" +
+          Array.from({length: 150}, (_, i) => {
+            const types = ["STAR", "GALAXY", "QSO"];
+            const type = types[i % 3];
+            const base = i % 3 === 0 ? 15 : i % 3 === 1 ? 18 : 19;
+            return `${type},${base + Math.random()},${base - 0.3 + Math.random()},${base - 0.6 + Math.random()},${base - 0.8 + Math.random()},${base - 1 + Math.random()},${Math.random() * 2},${1 + Math.random()},${1 + Math.random()}`;
+          }).join("\n");
+      }
+
+      const blob = new Blob([csvData], { type: "text/csv" });
+      const loadedFile = new File([blob], `${t.id}.csv`, { type: "text/csv" });
 
       setFile(loadedFile);
       setDatasetName(t.title);
@@ -163,8 +197,8 @@ export default function EducatorWorkspace() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
         {/* Sidebar: Templates & Principles */}
         <div className="space-y-6">
-          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-green-400">
+          <div className="rounded-lg border border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-4">
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-green-600 dark:text-green-400">
               <BookOpen className="h-5 w-5" /> 教学模板
             </h3>
             <div className="space-y-3">
@@ -172,20 +206,20 @@ export default function EducatorWorkspace() {
                 <button
                   key={t.id}
                   onClick={() => loadTemplate(t)}
-                  className={`w-full text-left rounded p-3 transition border ${activeTemplate === t.id ? "border-green-500 bg-green-500/10" : "border-white/10 hover:bg-white/5"}`}
+                  className={`w-full text-left rounded p-3 transition border ${activeTemplate === t.id ? "border-green-500 bg-green-500/10" : "border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5"}`}
                 >
-                  <div className="font-medium text-sm">{t.title}</div>
-                  <div className="text-xs text-white/50 mt-1">{t.desc}</div>
+                  <div className="font-medium text-sm text-slate-900 dark:text-white">{t.title}</div>
+                  <div className="text-xs text-slate-600 dark:text-white/50 mt-1">{t.desc}</div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-white/5 p-4 relative group">
-            <h3 className="mb-3 text-sm font-semibold text-blue-300 flex items-center justify-between">
+          <div className="rounded-lg border border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-4 relative group">
+            <h3 className="mb-3 text-sm font-semibold text-blue-600 dark:text-blue-300 flex items-center justify-between">
               原理可视化：高斯分布
               <button
-                className="text-xs text-white/40 hover:text-white underline"
+                className="text-xs text-slate-600 dark:text-white/40 hover:text-slate-900 dark:hover:text-white underline"
                 onClick={() =>
                   alert(
                     "高斯朴素贝叶斯假设特征服从正态分布。调整平滑参数可以改变分布曲线的'宽窄'，从而影响模型对边缘数据的容忍度。",
@@ -198,7 +232,7 @@ export default function EducatorWorkspace() {
 
             {/* Principle Popup (Hover/Click) - Simplified as hover for now or the alert above */}
 
-            <p className="text-xs text-white/60 mb-2">
+            <p className="text-xs text-slate-600 dark:text-white/60 mb-2">
               拖动滑块观察平滑参数对分布曲线的影响。
             </p>
             <div className="h-32 w-full">
@@ -244,10 +278,10 @@ export default function EducatorWorkspace() {
           {/* Reuse Config Panel (Hidden advanced settings?) or just show simple controls */}
           {file && (
             <div className="space-y-4">
-              <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4 flex items-center justify-between">
+              <div className="rounded-lg bg-blue-100 dark:bg-blue-500/10 border border-blue-300 dark:border-blue-500/20 p-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold">{datasetName}</h2>
-                  <p className="text-sm text-white/60">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{datasetName}</h2>
+                  <p className="text-sm text-slate-600 dark:text-white/60">
                     目标: {targetColumn} | 特征: {featureColumns.length} 个
                   </p>
                 </div>
@@ -264,18 +298,18 @@ export default function EducatorWorkspace() {
 
               {/* Error Analysis Section */}
               {result && (
-                <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
-                  <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold text-red-400">
+                <div className="rounded-lg border border-red-300 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4">
+                  <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold text-red-700 dark:text-red-400">
                     <AlertTriangle className="h-5 w-5" /> 错题分析与诊断
                   </h3>
                   {Array.isArray(errorAnalysis) ? (
-                    <ul className="list-disc pl-5 space-y-1 text-sm text-white/80">
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700 dark:text-white/80">
                       {errorAnalysis.map((err, i) => (
                         <li key={i}>{err}</li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-green-400">{errorAnalysis}</p>
+                    <p className="text-sm text-green-600 dark:text-green-400">{errorAnalysis}</p>
                   )}
                 </div>
               )}

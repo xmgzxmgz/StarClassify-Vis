@@ -262,15 +262,15 @@ export default function ResearcherWorkspace() {
     <div className="mx-auto max-w-[1400px] px-6 py-6">
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[420px_1fr]">
         <div className="space-y-4">
-          <div className="rounded-lg bg-white/5 p-4 border border-white/10">
-            <h3 className="mb-2 text-sm font-semibold text-blue-400">
+          <div className="rounded-lg bg-white dark:bg-white/5 p-4 border border-slate-300 dark:border-white/10">
+            <h3 className="mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
               科研助手功能
             </h3>
-            <p className="text-xs text-white/60 mb-3">
+            <p className="text-xs text-slate-600 dark:text-white/60 mb-3">
               支持高级参数调试、批量实验与数据质控。
             </p>
             {qualityReport.length > 0 && (
-              <div className="mb-4 rounded bg-yellow-500/10 p-3 text-xs text-yellow-200">
+              <div className="mb-4 rounded bg-yellow-100 dark:bg-yellow-500/10 p-3 text-xs text-yellow-800 dark:text-yellow-200">
                 <p className="font-bold mb-1">数据质控建议：</p>
                 <ul className="list-disc pl-4 space-y-1">
                   {qualityReport.map((q, i) => (

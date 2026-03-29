@@ -8,12 +8,12 @@ export default function Card(props: {
   return (
     <section
       className={cn(
-        "rounded-xl border border-white/10 bg-[#111A2E] p-4 shadow-sm",
+        "rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111A2E] p-4 shadow-sm",
         props.className,
       )}
     >
       {props.title ? (
-        <h2 className="mb-3 text-sm font-semibold text-white">{props.title}</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">{props.title}</h2>
       ) : null}
       {props.children}
     </section>

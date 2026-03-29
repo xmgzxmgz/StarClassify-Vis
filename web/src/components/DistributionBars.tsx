@@ -16,15 +16,15 @@ export default function DistributionBars(props: {
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-semibold text-white">{props.title}</div>
+      <div className="text-sm font-semibold text-slate-900 dark:text-white">{props.title}</div>
       <div className="space-y-2">
         {props.items.map((item) => (
           <div key={item.label} className="space-y-1">
-            <div className="flex items-center justify-between text-xs text-white/60">
+            <div className="flex items-center justify-between text-xs text-slate-600 dark:text-white/60">
               <span>{item.label}</span>
               <span>{item.value}</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-white/10">
+            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-white/10">
               <div
                 className={`h-2 rounded-full bg-gradient-to-r ${color} shimmer`}
                 style={{ width: `${Math.round((item.value / max) * 100)}%` }}

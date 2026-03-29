@@ -8,12 +8,12 @@ export default function EmptyState(props: {
   return (
     <div
       className={cn(
-        "rounded-lg border border-dashed border-white/15 bg-white/5 p-6",
+        "rounded-lg border border-slate-200 dark:border-dashed dark:border-white/15 bg-slate-50 dark:bg-white/5 p-6",
         props.className,
       )}
     >
-      <div className="text-sm font-semibold text-white">{props.title}</div>
-      <div className="mt-1 text-sm text-white/60">{props.description}</div>
+      <div className="text-sm font-semibold text-slate-900 dark:text-white">{props.title}</div>
+      <div className="mt-1 text-sm text-slate-600 dark:text-white/60">{props.description}</div>
     </div>
   );
 }
