@@ -57,7 +57,7 @@ export default function LabConfigPanel(props: {
                 </div>
               </div>
               <div className="rounded-lg bg-slate-100 dark:bg-white/5 p-3">
-                <div className="text-xs text-slate-600 dark:text-white/50">缺失值</div>
+                <div className="text-xs text-slate-600 dark:text-white/50">缺失(抽样)</div>
                 <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
                   {props.overview.missingCells}
                 </div>
@@ -65,7 +65,7 @@ export default function LabConfigPanel(props: {
             </div>
           ) : (
             <div className="text-xs text-slate-600 dark:text-white/50">
-              仅支持 CSV；上传后点击"开始分析"，系统会自动推荐目标与特征列
+              仅支持 CSV；上传后点击“开始分析”，系统会自动推荐目标与特征列
             </div>
           )}
           {props.overview ? (
@@ -95,7 +95,7 @@ export default function LabConfigPanel(props: {
           </Button>
           {props.result ? (
             <Link className="text-sm text-blue-600 dark:text-blue-300 hover:underline" to="/runs">
-              查看结果记录
+              去结果记录查看
             </Link>
           ) : null}
         </div>
@@ -103,41 +103,122 @@ export default function LabConfigPanel(props: {
 
       <Card title="示例数据">
         <div className="space-y-2 text-sm text-slate-700 dark:text-white/70">
-          <div>位置：项目根目录 /DB</div>
+          <div>位置：项目根目录 /datasets</div>
           <div className="grid grid-cols-1 gap-2 text-xs text-slate-600 dark:text-white/60">
-            <div>star_data_small.csv (500 样本)</div>
-            <div>star_data_medium.csv (1000 样本)</div>
-            <div>star_data_large.csv (2000 样本)</div>
+            <div>sdss_like_small.csv</div>
+            <div>sdss_like_balanced.csv</div>
+            <div>sdss_like_noisy.csv</div>
           </div>
         </div>
       </Card>
 
       <Card title="高级设置">
-        <div className="space-y-4">
-          <FormRow
-            label="测试集比例"
-            hint={`${Math.round(props.testSize * 100)}%`}
-          >
-            <input
-              type="range"
-              min={0.1}
-              max={0.5}
-              step={0.05}
-              value={props.testSize}
-              onChange={(e) => props.setTestSize(Number(e.target.value))}
-              className="w-full"
-            />
-          </FormRow>
+        <details className="group" open>
+          <summary className="cursor-pointer select-none text-sm text-slate-700 dark:text-white/70">
+            展开/收起高级配置
+          </summary>
+          <div className="mt-4 space-y-4">
+            <FormRow label="数据集名称" hint="用于结果记录页展示">
+              <input
+                value={props.datasetName}
+                onChange={(e) => props.setDatasetName(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none ring-0 focus:border-slate-400 dark:focus:border-white/25"
+                placeholder="例如：sdss_like_small.csv"
+              />
+            </FormRow>
 
-          <FormRow label="随机种子" hint="可选">
-            <input
-              value={props.randomState}
-              onChange={(e) => props.setRandomState(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none"
-              placeholder="例如：42"
-            />
-          </FormRow>
-        </div>
+            <FormRow
+              label="目标列（label）"
+              hint={
+                props.overview
+                  ? `共 ${props.headerOptions.length} 列`
+                  : "先上传 CSV"
+              }
+            >
+              <select
+                value={props.targetColumn}
+                onChange={(e) => props.setTargetColumn(e.target.value)}
+                disabled={!props.overview}
+                className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none disabled:opacity-60"
+              >
+                <option value="">请选择目标列</option>
+                {props.headerOptions.map((h) => (
+                  <option key={h} value={h}>
+                    {h}
+                  </option>
+                ))}
+              </select>
+            </FormRow>
+
+            <FormRow
+              label="特征列（多选）"
+              hint={
+                props.overview
+                  ? `已选 ${props.featureColumns.length}`
+                  : "先上传 CSV"
+              }
+            >
+              <div className="max-h-40 space-y-2 overflow-auto rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-3">
+                {props.featureOptions.length === 0 ? (
+                  <div className="text-sm text-slate-600 dark:text-white/50">
+                    请选择目标列后再勾选特征
+                  </div>
+                ) : (
+                  props.featureOptions.map((c) => (
+                    <label
+                      key={c}
+                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-white/80"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={props.featureColumns.includes(c)}
+                        onChange={() => props.toggleFeature(c)}
+                        className="h-4 w-4 accent-blue-500"
+                      />
+                      <span className="truncate">{c}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </FormRow>
+
+            <div className="space-y-3 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-3 text-xs text-slate-600 dark:text-white/60">
+              <div>仅保留高斯朴素贝叶斯</div>
+              <FormRow label="var_smoothing" hint="可选，默认由 sklearn 决定">
+                <input
+                  value={props.varSmoothing}
+                  onChange={(e) => props.setVarSmoothing(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none"
+                  placeholder="例如：1e-9"
+                />
+              </FormRow>
+            </div>
+
+            <FormRow
+              label="test_size"
+              hint={`${Math.round(props.testSize * 100)}% 用于测试集`}
+            >
+              <input
+                type="range"
+                min={0.1}
+                max={0.5}
+                step={0.05}
+                value={props.testSize}
+                onChange={(e) => props.setTestSize(Number(e.target.value))}
+                className="w-full"
+              />
+            </FormRow>
+
+            <FormRow label="random_state" hint="可选，留空则随机">
+              <input
+                value={props.randomState}
+                onChange={(e) => props.setRandomState(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none"
+                placeholder="例如：42"
+              />
+            </FormRow>
+          </div>
+        </details>
       </Card>
     </div>
   );
