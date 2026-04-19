@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
                 print(f"❌ 数据库连接失败，已重试 {max_retries} 次")
                 raise
 
-    app.include_router(runs_router)
+    app.include_router(runs_router, prefix="/api")
 
     @app.get("/api/health")
     def health():

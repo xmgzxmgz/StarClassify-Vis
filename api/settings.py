@@ -4,7 +4,7 @@ import os
 def get_database_url() -> str:
     v = os.environ.get("DATABASE_URL")
     if not v:
-        return "postgresql+psycopg://postgres:postgres@localhost:5432/starvis"
+        return "postgresql+psycopg://postgres:postgres@localhost:5433/starvis"
     return v
 
 

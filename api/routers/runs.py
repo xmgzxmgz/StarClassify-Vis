@@ -14,7 +14,7 @@ from api.models import Run
 from api.schemas import RunCreateRequest, RunListResponse, RunResult
 
 
-router = APIRouter(prefix="/api/runs", tags=["runs"])
+router = APIRouter(prefix="/runs", tags=["runs"])
 
 
 def _to_result(row: Run) -> RunResult:

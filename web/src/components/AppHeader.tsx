@@ -9,9 +9,9 @@ export default function AppHeader() {
   const { theme, toggleTheme } = useTheme();
 
   const modes: { id: UserMode; label: string; icon: React.ElementType }[] = [
-    { id: "researcher", label: "科研人员", icon: Microscope },
     { id: "educator", label: "天文师生", icon: GraduationCap },
     { id: "public", label: "科普人员", icon: Telescope },
+    { id: "researcher", label: "科研人员", icon: Microscope },
   ];
 
   return (
