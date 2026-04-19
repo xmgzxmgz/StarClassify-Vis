@@ -21,3 +21,4 @@ pnpm-lock.yaml
 
 postgres-data/
 datasets/allStar-dr17-synspec_rev1.fits
+datasets/
