@@ -133,9 +133,8 @@ export function predictGNB(
     const stats = model.stats[c];
     let logL = Math.log(stats.prior * (priorAdjustments?.[c] ?? 1));
 
-    // 使用部分特征（只选温度、光度、颜色指数），避免 5 个特征相乘导致指数级差异
-    const selectedFeatures = model.featureNames.filter(f => ['temperature', 'luminosity', 'colorIndex'].includes(f));
-    for (const f of selectedFeatures) {
+    // 使用所有特征进行分类
+    for (const f of model.featureNames) {
       const val = normalizedStar[f] as number;
       const mean = stats.mean[f];
       const std = stats.std[f];

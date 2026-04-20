@@ -9,19 +9,18 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
-import { Sparkles, BookOpen, Shuffle, Info } from "lucide-react";
+import { Sparkles, BookOpen, Shuffle, Info, Telescope } from "lucide-react";
 import Card from "@/components/Card";
 import GaussianCurveChart from "@/components/GaussianCurveChart";
 import HRDiagram from "@/components/HRDiagram";
 import ProbabilityBars from "@/components/ProbabilityBars";
-import PriorSlider from "@/components/PriorSlider";
 import FeatureInput from "@/components/FeatureInput";
 import FeatureAnalyzer from "@/components/FeatureAnalyzer";
 import {
   generateStarDataset,
+  generateStarDatasetSync,
   generateStarSample,
   getFeatureDistribution,
-  getPriors,
   STAR_CLASSES,
   FEATURE_LABELS,
   STAR_COLORS,
@@ -67,19 +66,31 @@ export default function EducatorWorkspace() {
     colorIndex: 0.65,
   });
 
-  // 始终保持真实宇宙比例
-  const basePriors = useMemo(() => getPriors(), []);
-
-  // priorAdjustments 用于分类计算
-  const [priorAdjustments, setPriorAdjustments] = useState<Partial<Record<StarClass, number>>>({});
-
   const [selectedFeature, setSelectedFeature] = useState<keyof StarParams>("temperature");
 
-  const initializeSystem = useCallback(() => {
-    const samples = generateStarDataset(500);
-    setDataset(samples);
-    const trainedModel = trainGNB(samples, FEATURE_KEYS);
-    setModel(trainedModel);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dataSource, setDataSource] = useState<string>("加载中...");
+
+  const initializeSystem = useCallback(async () => {
+    setLoading(true);
+    try {
+      // 使用增强的 SDSS 数据（含真实主序星 + 模拟红巨星和白矮星）
+      const samples = await generateStarDataset(500, { useSdss: true });
+      setDataset(samples);
+      const trainedModel = trainGNB(samples, FEATURE_KEYS);
+      setModel(trainedModel);
+      setDataSource('增强 SDSS 数据（真实主序星 + 模拟红巨星/白矮星）');
+    } catch (error) {
+      console.error('Failed to initialize system:', error);
+      // 失败时使用模拟数据
+      const samples = generateStarDatasetSync(500);
+      setDataset(samples);
+      const trainedModel = trainGNB(samples, FEATURE_KEYS);
+      setModel(trainedModel);
+      setDataSource('模拟数据');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useState(() => {
@@ -90,8 +101,8 @@ export default function EducatorWorkspace() {
 
   const classificationResult = useMemo(() => {
     if (!model) return null;
-    return classifyGNB(model, features, priorAdjustments);
-  }, [model, features, priorAdjustments]);
+    return classifyGNB(model, features);
+  }, [model, features]);
 
   const gaussianCurveData = useMemo(() => {
     const result: Record<StarClass, Array<{ x: number; y: number }>> = {
@@ -117,11 +128,12 @@ export default function EducatorWorkspace() {
   const handleRandomize = () => {
     // 随机选择一个星类型（按真实比例）
     const starClasses: StarClass[] = ["主序星", "红巨星", "白矮星"];
+    const priors = { "主序星": 0.9, "红巨星": 0.08, "白矮星": 0.02 };
     const r = Math.random();
     let cumProb = 0;
     let selectedClass: StarClass = "主序星";
     for (let i = 0; i < starClasses.length; i++) {
-      cumProb += basePriors[starClasses[i]];
+      cumProb += priors[starClasses[i]];
       if (r < cumProb) {
         selectedClass = starClasses[i];
         break;
@@ -147,9 +159,7 @@ export default function EducatorWorkspace() {
     initializeSystem();
   };
 
-  const handlePriorChange = (adjustments: Partial<Record<StarClass, number>>) => {
-    setPriorAdjustments(adjustments);
-  };
+
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "classify", label: "交互分类", icon: <Sparkles className="h-4 w-4" /> },
@@ -165,167 +175,171 @@ export default function EducatorWorkspace() {
               恒星分类科普系统
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-white/60">
-              基于高斯朴素贝叶斯 · 纯模拟数据 · 无需真实天文数据
+              基于高斯朴素贝叶斯 · {dataSource} · 恒星物理参数分析
             </p>
           </div>
-          <button
-            onClick={handleRegenerate}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 dark:border-white/10 dark:text-white/60 dark:hover:bg-white/5"
-          >
-            <Shuffle className="h-4 w-4" />
-            重置数据
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+              {dataSource}
+            </span>
+            <button
+              onClick={handleRegenerate}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 dark:border-white/10 dark:text-white/60 dark:hover:bg-white/5 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <Shuffle className="h-4 w-4" />
+              {loading ? "加载中..." : "重置数据"}
+            </button>
+          </div>
         </div>
       </div>
-
-      <div className="mb-6 flex gap-1 rounded-lg border border-slate-200 p-1 dark:border-white/10 dark:bg-white/5 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
-              activeTab === tab.id
-                ? "bg-blue-500 text-white shadow"
-                : "text-slate-600 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5"
-            }`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === "classify" && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[350px_1fr]">
-          <div className="space-y-5">
-            <Card title="输入恒星参数">
-              <FeatureInput
-                features={features}
-                onChange={setFeatures}
-                onRandomize={handleRandomize}
-              />
-            </Card>
-
-            <Card title="先验概率调节">
-              <PriorSlider priors={basePriors} onChange={handlePriorChange} />
-            </Card>
-
-            <Card title="系统说明">
-              <div className="space-y-3 text-xs text-slate-600 dark:text-white/60">
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-500">1.</span>
-                  <p>
-                    <strong>数据生成：</strong>
-                    模拟三类恒星（主序星90%、红巨星8%、白矮星2%）的物理参数，符合真实天文观测的高斯分布特征。
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-500">2.</span>
-                  <p>
-                    <strong>分类原理：</strong>
-                    高斯朴素贝叶斯计算输入恒星属于各类别的概率，选择概率最高者作为分类结果。
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-blue-500">3.</span>
-                  <p>
-                    <strong>科普意义：</strong>
-                    天文分类是概率性判断，不是"非黑即白"，这反映了宇宙的真实复杂性。
-                  </p>
-                </div>
+      
+      {loading ? (
+        <div className="flex min-h-[400px] items-center justify-center rounded-xl border border-slate-200 bg-white p-8 dark:border-white/10 dark:bg-slate-800">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full border-2 border-slate-200 border-t-blue-600 p-4 dark:border-slate-700 dark:border-t-blue-400"></div>
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+              正在加载真实 SDSS 数据...
+            </p>
+          </div>
+        </div>
+      ) : model ? (
+        <>
+          <section className="mb-6 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/50">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                <Telescope className="w-4 h-4" />
               </div>
-            </Card>
+              <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-300">恒星分类科普</h2>
+            </div>
+            <p className="text-sm text-blue-700 dark:text-blue-400">
+              高斯朴素贝叶斯是一种基于概率的分类算法，特别适合描述恒星物理参数的正态分布。
+              通过调整恒星的温度、光度、半径等参数，观察分类结果的变化，了解恒星演化的基本规律。
+            </p>
+          </section>
+          <div className="mb-6 flex gap-1 rounded-lg border border-slate-200 p-1 dark:border-white/10 dark:bg-white/5 w-fit">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                  activeTab === tab.id
+                    ? "bg-blue-500 text-white shadow"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          <div className="space-y-5">
-            <Card title="分类结果">
-              <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                  {STAR_CLASSES.map((starClass) => {
-                    const prob = classificationResult?.probabilities[starClass] ?? 0;
-                    const isPredicted = starClass === classificationResult?.class;
-                    return (
-                      <div
-                        key={starClass}
-                        className={`rounded-xl border-2 p-4 text-center transition-all ${
-                          isPredicted
-                            ? "border-current shadow-lg"
-                            : "border-slate-200 dark:border-white/10"
-                        }`}
-                        style={{
-                          borderColor: isPredicted ? STAR_COLORS[starClass] : undefined,
-                          backgroundColor: isPredicted
-                            ? `${STAR_COLORS[starClass]}15`
-                            : undefined,
-                        }}
-                      >
-                        <div
-                          className="mb-2 text-2xl font-bold"
-                          style={{ color: STAR_COLORS[starClass] }}
-                        >
-                          {(prob * 100).toFixed(1)}%
-                        </div>
-                        <div className="text-sm font-medium text-slate-700 dark:text-white">
-                          {starClass}
-                        </div>
-                        {isPredicted && (
-                          <div className="mt-2 text-xs text-green-600 dark:text-green-400">
-                            ← 判定结果
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {classificationResult && (
-                  <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-white">
-                      <Info className="h-4 w-4 text-blue-500" />
-                      分类依据
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-white/60">
-                      输入恒星被判定为
-                      <span
-                        className="mx-1 font-bold"
-                        style={{ color: STAR_COLORS[classificationResult.class] }}
-                      >
-                        {classificationResult.class}
-                      </span>
-                      ，概率为{" "}
-                      <span className="font-bold">
-                        {(classificationResult.probabilities[classificationResult.class] * 100).toFixed(1)}%
-                      </span>
-                      。这是因为该恒星的光度
-                      <span className="font-mono">
-                        {features.luminosity.toFixed(3)} L☉
-                      </span>
-                      和半径
-                      <span className="font-mono">
-                        {features.radius.toFixed(3)} R☉
-                      </span>
-                      与
-                      <span
-                        className="mx-1 font-bold"
-                        style={{ color: STAR_COLORS[classificationResult.class] }}
-                      >
-                        {classificationResult.class}
-                      </span>
-                      的典型分布高度吻合。
-                    </p>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            <Card title="概率分布">
-              {classificationResult && (
-                <ProbabilityBars
-                  probabilities={classificationResult.probabilities}
-                  predictedClass={classificationResult.class}
+      {activeTab === "classify" && (
+        <div className="space-y-6">
+          <Card title="特征分析器 - 探索每个特征如何影响恒星分类">
+            <FeatureAnalyzer />
+          </Card>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[350px_1fr]">
+            <div className="space-y-5">
+              <Card title="输入恒星参数">
+                <FeatureInput
+                  features={features}
+                  onChange={setFeatures}
+                  onRandomize={handleRandomize}
                 />
-              )}
-            </Card>
+              </Card>
+            </div>
+
+            <div className="space-y-5">
+              <Card title="分类结果">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    {STAR_CLASSES.map((starClass) => {
+                      const prob = classificationResult?.probabilities[starClass] ?? 0;
+                      const isPredicted = starClass === classificationResult?.class;
+                      return (
+                        <div
+                          key={starClass}
+                          className={`rounded-xl border-2 p-4 text-center transition-all ${
+                            isPredicted
+                              ? "border-current shadow-lg"
+                              : "border-slate-200 dark:border-white/10"
+                          }`}
+                          style={{
+                            borderColor: isPredicted ? STAR_COLORS[starClass] : undefined,
+                            backgroundColor: isPredicted
+                              ? `${STAR_COLORS[starClass]}15`
+                              : undefined,
+                          }}
+                        >
+                          <div
+                            className="mb-2 text-2xl font-bold"
+                            style={{ color: STAR_COLORS[starClass] }}
+                          >
+                            {(prob * 100).toFixed(1)}%
+                          </div>
+                          <div className="text-sm font-medium text-slate-700 dark:text-white">
+                            {starClass}
+                          </div>
+                          {isPredicted && (
+                            <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                              ← 判定结果
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {classificationResult && (
+                    <div className="rounded-lg bg-slate-50 p-4 dark:bg-white/5">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-white">
+                        <Info className="h-4 w-4 text-blue-500" />
+                        分类依据
+                      </div>
+                      <p className="text-sm text-slate-600 dark:text-white/60">
+                        输入恒星被判定为
+                        <span
+                          className="mx-1 font-bold"
+                          style={{ color: STAR_COLORS[classificationResult.class] }}
+                        >
+                          {classificationResult.class}
+                        </span>
+                        ，概率为{" "}
+                        <span className="font-bold">
+                          {(classificationResult.probabilities[classificationResult.class] * 100).toFixed(1)}%
+                        </span>
+                        。这是因为该恒星的光度
+                        <span className="font-mono">
+                          {features.luminosity.toFixed(3)} L☉
+                        </span>
+                        和半径
+                        <span className="font-mono">
+                          {features.radius.toFixed(3)} R☉
+                        </span>
+                        与
+                        <span
+                          className="mx-1 font-bold"
+                          style={{ color: STAR_COLORS[classificationResult.class] }}
+                        >
+                          {classificationResult.class}
+                        </span>
+                        的典型分布高度吻合。
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              <Card title="概率分布">
+                {classificationResult && (
+                  <ProbabilityBars
+                    probabilities={classificationResult.probabilities}
+                    predictedClass={classificationResult.class}
+                  />
+                )}
+              </Card>
+            </div>
           </div>
         </div>
       )}
@@ -333,6 +347,27 @@ export default function EducatorWorkspace() {
       {activeTab === "visualize" && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card title="赫罗图 (H-R Diagram)">
+              <HRDiagram samples={hrDiagramData} />
+              <div className="mt-4 space-y-2 rounded-lg bg-purple-50 p-3 dark:bg-purple-500/10">
+                <div className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                  🌟 赫罗图科普
+                </div>
+                <p className="text-xs text-purple-600 dark:text-purple-400">
+                  <strong>主序星</strong>：一条从左上（高温高光度）到右下（低温低光度）的带状区域。
+                  太阳就是这个带上的一个点。
+                </p>
+                <p className="text-xs text-purple-600 dark:text-purple-400">
+                  <strong>红巨星</strong>：在右上角，低温但高光度（因为半径大）。
+                  已经离开主序带，演化到后期阶段。
+                </p>
+                <p className="text-xs text-purple-600 dark:text-purple-400">
+                  <strong>白矮星</strong>：在左下角，高温但低光度（因为体积小）。
+                  是恒星演化的最终产物之一。
+                </p>
+              </div>
+            </Card>
+
             <Card title="高斯分布曲线">
               <div className="mb-4">
                 <div className="text-xs text-slate-600 dark:text-white/50 mb-2">
@@ -373,66 +408,11 @@ export default function EducatorWorkspace() {
                 </p>
               </div>
             </Card>
-
-            <Card title="赫罗图 (H-R Diagram)">
-              <HRDiagram samples={hrDiagramData} />
-              <div className="mt-4 space-y-2 rounded-lg bg-purple-50 p-3 dark:bg-purple-500/10">
-                <div className="text-xs font-medium text-purple-700 dark:text-purple-300">
-                  🌟 赫罗图科普
-                </div>
-                <p className="text-xs text-purple-600 dark:text-purple-400">
-                  <strong>主序星</strong>：一条从左上（高温高光度）到右下（低温低光度）的带状区域。
-                  太阳就是这个带上的一个点。
-                </p>
-                <p className="text-xs text-purple-600 dark:text-purple-400">
-                  <strong>红巨星</strong>：在右上角，低温但高光度（因为半径大）。
-                  已经离开主序带，演化到后期阶段。
-                </p>
-                <p className="text-xs text-purple-600 dark:text-purple-400">
-                  <strong>白矮星</strong>：在左下角，高温但低光度（因为体积小）。
-                  是恒星演化的最终产物之一。
-                </p>
-              </div>
-            </Card>
           </div>
-
-          <Card title="为什么高斯分布适合描述恒星？">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-lg border border-slate-200 p-4 dark:border-white/10">
-                <div className="mb-2 text-lg font-bold text-slate-800 dark:text-white">
-                  🌡️ 中心极限定理
-                </div>
-                <p className="text-xs text-slate-600 dark:text-white/60">
-                  大量独立随机因素共同影响一个量时，结果趋向于正态分布。
-                  恒星形成过程中的多种物理条件叠加，使其参数呈现高斯分布。
-                </p>
-              </div>
-              <div className="rounded-lg border border-slate-200 p-4 dark:border-white/10">
-                <div className="mb-2 text-lg font-bold text-slate-800 dark:text-white">
-                  📈 自然规律
-                </div>
-                <p className="text-xs text-slate-600 dark:text-white/60">
-                  身高、智商、测量误差、考试成绩……自然界无数量都服从正态分布。
-                  恒星物理参数同样遵循这一最普遍的统计规律。
-                </p>
-              </div>
-              <div className="rounded-lg border border-slate-200 p-4 dark:border-white/10">
-                <div className="mb-2 text-lg font-bold text-slate-800 dark:text-white">
-                  🔬 物理意义
-                </div>
-                <p className="text-xs text-slate-600 dark:text-white/60">
-                  同类恒星有相似的形成机制和演化路径，所以物理参数在平均值附近集中。
-                  高斯分布的宽度反映了该类恒星的内部多样性。
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="特征分析器 - 探索每个特征如何影响恒星分类">
-            <FeatureAnalyzer />
-          </Card>
         </div>
       )}
+        </>
+      ) : null}
     </div>
   );
 }

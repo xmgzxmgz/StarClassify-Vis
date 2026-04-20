@@ -150,37 +150,7 @@ export default function LabConfigPanel(props: {
               </select>
             </FormRow>
 
-            <FormRow
-              label="特征列（多选）"
-              hint={
-                props.overview
-                  ? `已选 ${props.featureColumns.length}`
-                  : "先上传 CSV"
-              }
-            >
-              <div className="max-h-40 space-y-2 overflow-auto rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-3">
-                {props.featureOptions.length === 0 ? (
-                  <div className="text-sm text-slate-600 dark:text-white/50">
-                    请选择目标列后再勾选特征
-                  </div>
-                ) : (
-                  props.featureOptions.map((c) => (
-                    <label
-                      key={c}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-white/80"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={props.featureColumns.includes(c)}
-                        onChange={() => props.toggleFeature(c)}
-                        className="h-4 w-4 accent-blue-500"
-                      />
-                      <span className="truncate">{c}</span>
-                    </label>
-                  ))
-                )}
-              </div>
-            </FormRow>
+
 
             <div className="space-y-3 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-3 text-xs text-slate-600 dark:text-white/60">
               <div>仅保留高斯朴素贝叶斯</div>

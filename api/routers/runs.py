@@ -73,9 +73,11 @@ def create_run(
 ):
     """上传 CSV 执行训练并保存结果。"""
     try:
+        print(f"Received payload: {payload}")
         req = RunCreateRequest.model_validate_json(payload)
-    except Exception:
-        raise HTTPException(status_code=400, detail="payload 不是合法的 JSON 或字段不符合要求")
+    except Exception as e:
+        print(f"Error parsing payload: {e}")
+        raise HTTPException(status_code=400, detail=f"payload 不是合法的 JSON 或字段不符合要求: {str(e)}")
 
     if req.modelType != "gaussian_nb":
         raise HTTPException(status_code=400, detail="仅支持 gaussian_nb")

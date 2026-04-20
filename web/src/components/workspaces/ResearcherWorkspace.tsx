@@ -24,11 +24,17 @@ export default function ResearcherWorkspace() {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>(1);
   const [file, setFile] = useState<File | null>(null);
   const [overview, setOverview] = useState<CsvOverview | null>(null);
-  const [datasetName, setDatasetName] = useState<string>("");
-  const [targetColumn, setTargetColumn] = useState<string>("");
-  const [featureColumns, setFeatureColumns] = useState<string[]>([]);
+  const [datasetName, setDatasetName] = useState<string>("apogee_sample_classified.csv");
+  const [targetColumn, setTargetColumn] = useState<string>("class");
+  const [featureColumns, setFeatureColumns] = useState<string[]>([
+    "apogee_id", "ra", "dec", "teff", "teff_err", "logg", "logg_err",
+    "feh", "feh_err", "alpha_m", "alpha_m_err", "c_fe", "n_fe", "o_fe",
+    "mg_fe", "si_fe", "s_fe", "ca_fe", "ni_fe", "vhelio", "snr",
+    "nvisits", "field", "location_id"
+  ]);
+
   const [testSize, setTestSize] = useState<number>(0.2);
-  const [randomState, setRandomState] = useState<string>("42");
+  const [randomState, setRandomState] = useState<string>("");
   const [varSmoothing, setVarSmoothing] = useState<string>("");
 
   const [qualityReport, setQualityReport] = useState<string[]>([]);
@@ -163,10 +169,6 @@ export default function ResearcherWorkspace() {
       setError("请选择目标列（MK分类标签）");
       return;
     }
-    if (featureColumns.length === 0) {
-      setError("请至少选择 1 个特征列");
-      return;
-    }
     setError("");
     setCurrentStep(3);
   }
@@ -184,12 +186,16 @@ export default function ResearcherWorkspace() {
     }
     const inferredTarget =
       targetColumn || (overview ? pickTarget(overview.headers) : "");
+    // 自动选择所有数值型特征列（除了目标列和非数值型列）
     const inferredFeatures =
-      featureColumns.length > 0
-        ? featureColumns
-        : overview
-          ? pickFeatures(overview, inferredTarget)
-          : [];
+      overview
+        ? overview.numericColumns.filter((h) => {
+            if (h === inferredTarget) return false;
+            // 排除常见的非数值型列
+            const nonNumericPatterns = /(id|field|location|name|code|label|class|type)$/i;
+            return !nonNumericPatterns.test(h);
+          })
+        : [];
     if (!inferredTarget) {
       setError("请选择目标列（MK分类标签）");
       return;
@@ -205,63 +211,32 @@ export default function ResearcherWorkspace() {
       setFeatureColumns(inferredFeatures);
     }
 
-    const rs = randomState.trim() === "" ? undefined : Number(randomState);
-    if (randomState.trim() !== "" && Number.isNaN(rs)) {
-      setError("random_state 必须为整数");
-      return;
-    }
-
-    let vsList = varSmoothing
-      .split(",")
-      .map((v) => v.trim())
-      .filter((v) => v !== "");
-
-    if (vsList.length === 0) {
-      vsList = [""];
-    }
-
     setBusy(true);
     try {
-      const results = [];
-      for (const vsStr of vsList) {
-        let vs: number | undefined = undefined;
-        if (vsStr !== "") {
-          vs = Number(vsStr);
-          if (Number.isNaN(vs) || vs < 0) {
-            setError(`参数错误: ${vsStr} 不是合法的 var_smoothing`);
-            setBusy(false);
-            return;
-          }
-        }
+      const payload: RunCreateRequest = {
+        datasetName: datasetName.trim(),
+        targetColumn: inferredTarget,
+        featureColumns: inferredFeatures,
+        testSize: 0.2,
+        randomState: 42,
+        modelType: "gaussian_nb",
+        gnbParams: {},
+      };
 
-        const payload: RunCreateRequest = {
-          datasetName:
-            datasetName.trim() +
-            (vsList.length > 1 && vsStr !== "" ? ` (vs=${vsStr})` : ""),
-          targetColumn: inferredTarget,
-          featureColumns: inferredFeatures,
-          testSize,
-          randomState: rs,
-          modelType: "gaussian_nb",
-          gnbParams: { varSmoothing: vs },
-        };
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("payload", JSON.stringify(payload));
 
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("payload", JSON.stringify(payload));
+      const res = await apiFetch<RunResult>("/api/runs", {
+        method: "POST",
+        body: fd,
+      });
 
-        const res = await apiFetch<RunResult>("/api/runs", {
-          method: "POST",
-          body: fd,
-        });
-        results.push(res);
-      }
-
-      setResult(results[results.length - 1]);
+      setResult(res);
       setCurrentStep(4);
       pushToast({
         title: "分类训练完成",
-        description: `成功运行 ${results.length} 组实验`,
+        description: "成功运行实验",
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "请求失败");
@@ -465,27 +440,7 @@ export default function ResearcherWorkspace() {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-white/70 mb-1">
-                      特征列（多选）
-                    </label>
-                    <div className="max-h-32 space-y-1 overflow-auto rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-2">
-                      {featureOptions.map((c) => (
-                        <label
-                          key={c}
-                          className="flex cursor-pointer items-center gap-2 text-xs text-slate-700 dark:text-white/80"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={featureColumns.includes(c)}
-                            onChange={() => toggleFeature(c)}
-                            className="h-3 w-3 accent-blue-500"
-                          />
-                          <span className="truncate">{c}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+
                 </div>
               </Card>
 
@@ -497,47 +452,6 @@ export default function ResearcherWorkspace() {
 
               {currentStep === 3 && (
                 <div className="space-y-3">
-                  <Card title="高级参数">
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-700 dark:text-white/70 mb-1">
-                          test_size ({Math.round(testSize * 100)}% 用于测试集)
-                        </label>
-                        <input
-                          type="range"
-                          min={0.1}
-                          max={0.5}
-                          step={0.05}
-                          value={testSize}
-                          onChange={(e) => setTestSize(Number(e.target.value))}
-                          className="w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-700 dark:text-white/70 mb-1">
-                          random_state
-                        </label>
-                        <input
-                          value={randomState}
-                          onChange={(e) => setRandomState(e.target.value)}
-                          className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none"
-                          placeholder="例如：42"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-700 dark:text-white/70 mb-1">
-                          var_smoothing
-                        </label>
-                        <input
-                          value={varSmoothing}
-                          onChange={(e) => setVarSmoothing(e.target.value)}
-                          className="w-full rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none"
-                          placeholder="例如：1e-9"
-                        />
-                      </div>
-                    </div>
-                  </Card>
-
                   <div className="flex gap-2">
                     <Button onClick={() => setCurrentStep(2)} variant="secondary" className="flex-1">
                       返回预处理

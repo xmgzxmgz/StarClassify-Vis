@@ -1,8 +1,11 @@
 /**
  * 恒星模拟数据生成器
- * 基于真实天文物理参数，模拟三类恒星的高斯分布特征
- * 主序星、红巨星、白矮星 - 调整参数增加分布重叠
+ * 支持两种模式：
+ * 1. 基于真实 SDSS 数据（优先）
+ * 2. 基于高斯分布的模拟数据（备用）
  */
+
+import { loadSdssData } from './sdssDataLoader';
 
 export type StarClass = "主序星" | "红巨星" | "白矮星";
 
@@ -16,6 +19,79 @@ export interface StarParams {
 
 export interface StarSample extends StarParams {
   class: StarClass;
+}
+
+// 缓存的 SDSS 数据
+let cachedSdssData: StarSample[] | null = null;
+
+// 转换英文分类到中文
+function englishToChineseClass(englishClass: string): StarClass {
+  const mapping: Record<string, StarClass> = {
+    'mainSequence': '主序星',
+    'redGiant': '红巨星',
+    'whiteDwarf': '白矮星'
+  };
+  return mapping[englishClass] || '主序星';
+}
+
+// 加载并增强 SDSS 数据（添加红巨星和白矮星）
+async function loadAndEnhanceSdssData(): Promise<StarSample[]> {
+  if (cachedSdssData) {
+    return cachedSdssData;
+  }
+  
+  try {
+    // 加载原始 SDSS 数据
+    const sdssData = await loadSdssData();
+    const processedData = sdssData.map(item => ({
+      ...item,
+      class: englishToChineseClass(item.class)
+    }));
+    
+    // 增强数据：添加红巨星和白矮星
+    const enhancedData = enhanceSdssData(processedData);
+    
+    cachedSdssData = enhancedData;
+    return cachedSdssData;
+  } catch (error) {
+    console.error('Failed to load SDSS data:', error);
+    // 失败时返回增强的模拟数据
+    return enhanceSdssData([]);
+  }
+}
+
+// 增强 SDSS 数据，添加红巨星和白矮星
+function enhanceSdssData(sdssData: StarSample[]): StarSample[] {
+  const enhanced: StarSample[] = [...sdssData];
+  
+  // 统计现有分类
+  const counts = {
+    '主序星': 0,
+    '红巨星': 0,
+    '白矮星': 0
+  };
+  
+  for (const star of sdssData) {
+    counts[star.class]++;
+  }
+  
+  // 添加红巨星（如果不足）
+  const redGiantCount = Math.max(30, Math.floor(sdssData.length * 0.1));
+  while (counts['红巨星'] < redGiantCount) {
+    const redGiant = generateStarSample('红巨星');
+    enhanced.push(redGiant);
+    counts['红巨星']++;
+  }
+  
+  // 添加白矮星（如果不足）
+  const whiteDwarfCount = Math.max(20, Math.floor(sdssData.length * 0.05));
+  while (counts['白矮星'] < whiteDwarfCount) {
+    const whiteDwarf = generateStarSample('白矮星');
+    enhanced.push(whiteDwarf);
+    counts['白矮星']++;
+  }
+  
+  return enhanced;
 }
 
 /**
@@ -99,9 +175,79 @@ export function generateStarSample(starClass?: StarClass): StarSample {
 }
 
 /**
- * 生成指定数量的恒星数据集
+ * 从增强的 SDSS 数据中随机采样
  */
-export function generateStarDataset(count: number, options?: {
+export async function generateStarDatasetFromSdss(count: number): Promise<StarSample[]> {
+  const enhancedData = await loadAndEnhanceSdssData();
+  
+  if (enhancedData.length === 0) {
+    // 如果 SDSS 数据加载失败，使用模拟数据
+    return generateStarDataset(count);
+  }
+  
+  // 随机采样
+  const samples: StarSample[] = [];
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(Math.random() * enhancedData.length);
+    samples.push({ ...enhancedData[randomIndex] });
+  }
+  
+  return samples;
+}
+
+/**
+ * 生成指定数量的恒星数据集
+ * 优先使用真实 SDSS 数据，失败时使用模拟数据
+ */
+export async function generateStarDataset(count: number, options?: {
+  classCounts?: Partial<Record<StarClass, number>>;
+  priorAdjustments?: Partial<Record<StarClass, number>>;
+  useSdss?: boolean; // 是否使用 SDSS 数据
+}): Promise<StarSample[]> {
+  const { classCounts, priorAdjustments = {}, useSdss = true } = options || {};
+
+  // 如果指定使用 SDSS 数据且没有指定具体类别数量
+  if (useSdss && !classCounts) {
+    return generateStarDatasetFromSdss(count);
+  }
+
+  // 否则使用模拟数据
+  const samples: StarSample[] = [];
+
+  if (classCounts) {
+    for (const [starClass, n] of Object.entries(classCounts)) {
+      for (let i = 0; i < (n as number); i++) {
+        samples.push(generateStarSample(starClass as StarClass));
+      }
+    }
+  } else {
+    const classes: StarClass[] = ["主序星", "红巨星", "白矮星"];
+    const priors = classes.map(c => STAR_DISTRIBUTIONS[c].prior * (priorAdjustments[c] || 1));
+    const total = priors.reduce((a, b) => a + b, 0);
+    const normalizedPriors = priors.map(p => p / total);
+
+    for (let i = 0; i < count; i++) {
+      const r = Math.random();
+      let cumProb = 0;
+      let starClass: StarClass = "主序星";
+      for (let j = 0; j < classes.length; j++) {
+        cumProb += normalizedPriors[j];
+        if (r < cumProb) {
+          starClass = classes[j];
+          break;
+        }
+      }
+      samples.push(generateStarSample(starClass));
+    }
+  }
+
+  return samples;
+}
+
+/**
+ * 同步版本的生成函数（始终使用模拟数据）
+ */
+export function generateStarDatasetSync(count: number, options?: {
   classCounts?: Partial<Record<StarClass, number>>;
   priorAdjustments?: Partial<Record<StarClass, number>>;
 }): StarSample[] {
