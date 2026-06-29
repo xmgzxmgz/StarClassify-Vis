@@ -13,11 +13,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Line,
-  ComposedChart,
 } from "recharts";
 import type { StarClass } from "@/lib/starSimulator";
-import { STAR_COLORS, STAR_CLASSES } from "@/lib/starSimulator";
+import { STAR_COLORS } from "@/lib/starSimulator";
 
 interface HRDiagramProps {
   samples: Array<{
@@ -63,7 +61,6 @@ export default function HRDiagram({ samples }: HRDiagramProps) {
     const points: { temperature: number; luminosity: number }[] = [];
     for (let t = 3000; t <= 25000; t += 500) {
       for (let l = -4; l <= 3; l += 0.2) {
-        const lumLinear = Math.pow(10, l);
         const dist = Math.sqrt(
           Math.pow((t - tempMean) / 5000, 2) + Math.pow((l - Math.log10(lumMean)) / 1, 2)
         );
@@ -185,11 +182,12 @@ export default function HRDiagram({ samples }: HRDiagramProps) {
                 borderRadius: "8px",
                 color: "#fff",
               }}
-              formatter={(value: number, name: string) => {
-                if (name === "temperature") return [`${value.toFixed(0)} K`, "温度"];
-                if (name === "luminosity")
-                  return [`${Math.pow(10, value).toFixed(4)} L☉`, "光度"];
-                return [value, name];
+              formatter={(value: unknown, name: unknown) => {
+                const label = String(name);
+                if (label === "temperature" && typeof value === 'number') return [`${value.toFixed(0)} K`, "温度"] as [string, string];
+                if (label === "luminosity" && typeof value === 'number')
+                  return [`${Math.pow(10, value).toFixed(4)} L☉`, "光度"] as [string, string];
+                return [String(value), label] as [string, string];
               }}
             />
             {contourData.map(({ name, data }) => (

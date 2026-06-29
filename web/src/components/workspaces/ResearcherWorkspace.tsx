@@ -33,9 +33,9 @@ export default function ResearcherWorkspace() {
     "nvisits", "field", "location_id"
   ]);
 
-  const [testSize, setTestSize] = useState<number>(0.2);
-  const [randomState, setRandomState] = useState<string>("");
-  const [varSmoothing, setVarSmoothing] = useState<string>("");
+  const [_testSize, setTestSize] = useState<number>(0.2);
+  const [_randomState, setRandomState] = useState<string>("");
+  const [_varSmoothing, setVarSmoothing] = useState<string>("");
 
   const [qualityReport, setQualityReport] = useState<string[]>([]);
 
@@ -60,21 +60,10 @@ export default function ResearcherWorkspace() {
   }, [prefill]);
 
   const headerOptions = useMemo(() => overview?.headers ?? [], [overview]);
-  const featureOptions = useMemo(() => {
-    if (!overview) return [];
-    return overview.headers.filter((h) => h !== targetColumn);
-  }, [overview, targetColumn]);
 
   useEffect(() => {
     setFeatureColumns((prev) => prev.filter((x) => x !== targetColumn));
   }, [targetColumn]);
-
-  function toggleFeature(col: string) {
-    setFeatureColumns((prev) => {
-      if (prev.includes(col)) return prev.filter((x) => x !== col);
-      return [...prev, col];
-    });
-  }
 
   function pickTarget(headers: string[]) {
     const hints = [
@@ -277,7 +266,6 @@ export default function ResearcherWorkspace() {
 
           <div className="flex items-center gap-3 overflow-x-auto pb-2">
             {steps.map((step, idx) => {
-              const Icon = step.icon;
               const isActive = currentStep === step.num;
               const isCompleted = currentStep > step.num;
               return (

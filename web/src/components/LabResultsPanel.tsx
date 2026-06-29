@@ -122,7 +122,6 @@ export default function LabResultsPanel(props: {
             const predictedCounts = labels.map((_, j) =>
               matrix.reduce((sum, row) => sum + (row[j] ?? 0), 0),
             );
-            const total = actualCounts.reduce((a, b) => a + b, 0);
 
             return (
               <div className="mt-3 space-y-6">

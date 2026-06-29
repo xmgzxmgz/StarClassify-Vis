@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { FlaskConical, History, GraduationCap, Telescope, Microscope, Settings, Moon, Sun } from "lucide-react";
+import { FlaskConical, History, GraduationCap, Microscope, Settings, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMode, UserMode } from "@/context/ModeContext";
 import { useTheme } from "@/context/ThemeContext";

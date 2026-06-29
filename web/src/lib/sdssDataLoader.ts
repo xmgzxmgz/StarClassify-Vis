@@ -8,8 +8,7 @@ import { StarClass, StarParams } from './starSimulator';
 // 从 CSV 字符串解析恒星数据
 function parseStarData(csvContent: string): StarParams[] {
   const lines = csvContent.split('\n');
-  const headers = lines[0].split(',');
-  
+
   const stars: StarParams[] = [];
   
   for (let i = 1; i < lines.length; i++) {
@@ -40,7 +39,7 @@ function parseStarData(csvContent: string): StarParams[] {
 }
 
 // 根据温度和表面重力计算光度
-function calculateLuminosity(temperature: number, logg: number): number {
+function calculateLuminosity(temperature: number, _logg: number): number {
   // 基于温度的简化光度计算（更适合赫罗图展示）
   // 使用主序星的温度-光度关系
   if (temperature < 3500) return 0.01; // 红矮星
@@ -57,7 +56,6 @@ function calculateRadius(temperature: number, luminosity: number): number {
   // 基于温度和光度的简化半径计算
   // 使用 Stefan-Boltzmann 定律：L ∝ R² T⁴
   const solarTemperature = 5778; // 太阳温度 (K)
-  const solarRadius = 1.0; // 太阳半径
   
   // 计算半径比例
   const radiusRatio = Math.sqrt(luminosity) * Math.pow(solarTemperature / temperature, 2);

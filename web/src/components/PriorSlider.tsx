@@ -12,8 +12,6 @@ interface PriorSliderProps {
 }
 
 export default function PriorSlider({ priors, onChange }: PriorSliderProps) {
-  const multipliers = { 主序星: 1, 红巨星: 1, 白矮星: 1 };
-
   return (
     <div className="space-y-4">
       <div className="text-sm font-medium text-slate-700 dark:text-white/80">

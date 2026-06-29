@@ -46,13 +46,6 @@ const FEATURE_RANGES: Record<keyof StarParams, { min: number; max: number; defau
   colorIndex: { min: -1, max: 2.5, default: 0.65 },
 };
 
-// 典型恒星参数（用于高质量随机）
-const TYPICAL_STAR_PARAMS: Record<StarClass, StarParams> = {
-  "主序星": { temperature: 5800, luminosity: 1.0, radius: 1.0, mass: 1.0, colorIndex: 0.65 },
-  "红巨星": { temperature: 4500, luminosity: 50, radius: 20, mass: 1.2, colorIndex: 1.5 },
-  "白矮星": { temperature: 15000, luminosity: 0.01, radius: 0.01, mass: 0.7, colorIndex: -0.3 },
-};
-
 export default function EducatorWorkspace() {
   const [activeTab, setActiveTab] = useState<Tab>("classify");
   const [dataset, setDataset] = useState<StarSample[]>([]);
@@ -140,10 +133,7 @@ export default function EducatorWorkspace() {
       }
     }
 
-    // 获取该类型的典型参数
-    const typical = TYPICAL_STAR_PARAMS[selectedClass];
-
-    // 生成一个在该类型典型值附近的高质量样本
+    // 获取该类型的典型参数并生成一个高质量样本
     const sample = generateStarSample(selectedClass);
 
     setFeatures({
@@ -391,7 +381,6 @@ export default function EducatorWorkspace() {
               </div>
               <GaussianCurveChart
                 data={gaussianCurveData}
-                featureLabel={FEATURE_LABELS[selectedFeature]}
                 selectedFeature={selectedFeature}
               />
               <div className="mt-4 rounded-lg bg-blue-50 p-3 dark:bg-blue-500/10">

@@ -9,7 +9,6 @@ import { FlaskConical, Star, Rocket, Target, Lightbulb, Trophy, Sparkles, ZoomIn
 import Card from "@/components/Card";
 import {
   generateStarSample,
-  type StarClass,
   type StarParams,
   STAR_CLASSES,
   STAR_COLORS,
@@ -18,7 +17,6 @@ import {
 import {
   trainGNB,
   classifyGNB,
-  generateGaussianCurve as genGaussianCurve,
 } from "@/lib/gnbClassifier";
 
 const FEATURE_RANGES: Record<keyof StarParams, { min: number; max: number; default: number }> = {
@@ -39,13 +37,6 @@ export default function PublicWorkspace() {
     radius: 1.0,
     mass: 1.0,
     colorIndex: 0.65,
-  });
-  const [dataset, setDataset] = useState(() => {
-    const samples = [];
-    for (let i = 0; i < 200; i++) {
-      samples.push(generateStarSample());
-    }
-    return samples;
   });
   const [model] = useState(() => {
     const samples = [];

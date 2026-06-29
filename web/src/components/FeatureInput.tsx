@@ -7,7 +7,6 @@ import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import type { StarParams, StarClass } from "@/lib/starSimulator";
 import { FEATURE_LABELS } from "@/lib/starSimulator";
-import { generateStarSample } from "@/lib/starSimulator";
 
 interface FeatureInputProps {
   features: StarParams;

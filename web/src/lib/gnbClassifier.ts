@@ -44,7 +44,7 @@ export function trainGNB(
   const stats: Record<StarClass, ClassStats> = {} as Record<StarClass, ClassStats>;
 
   // 特征标准化 - 基于所有数据
-  const featureScales: Record<keyof StarParams, { mean: number; std: number }> = {} as any;
+  const featureScales: Record<keyof StarParams, { mean: number; std: number }> = {} as Record<keyof StarParams, { mean: number; std: number }>;
   for (const f of featureNames) {
     const vals = samples.map(s => s[f] as number);
     const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
@@ -54,12 +54,12 @@ export function trainGNB(
 
   // 标准化样本
   const normalizedSamples = samples.map(sample => {
-    const normalized: any = { class: sample.class };
+    const normalized = { class: sample.class } as Record<string, unknown>;
     for (const f of featureNames) {
       const { mean, std } = featureScales[f];
-      normalized[f] = ((sample[f] as number) - mean) / std;
+      normalized[f as string] = ((sample[f] as number) - mean) / std;
     }
-    return normalized as StarParams & { class: StarClass };
+    return normalized as unknown as StarParams & { class: StarClass };
   });
 
   const classCounts: Record<StarClass, number> = {} as Record<StarClass, number>;

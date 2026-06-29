@@ -19,7 +19,6 @@ import { STAR_COLORS } from "@/lib/starSimulator";
 
 interface GaussianCurveChartProps {
   data: Record<StarClass, Array<{ x: number; y: number }>>;
-  featureLabel: string;
   selectedFeature?: string;
 }
 
@@ -34,7 +33,6 @@ const FEATURE_RANGES: Record<string, { min: number; max: number }> = {
 
 export default function GaussianCurveChart({
   data,
-  featureLabel,
   selectedFeature,
 }: GaussianCurveChartProps) {
   const starClasses: StarClass[] = ["主序星", "红巨星", "白矮星"];
@@ -48,7 +46,7 @@ export default function GaussianCurveChart({
   }));
 
   // 对数和线性切换
-  const isLogFeature = selectedFeature === 'luminosity' || selectedFeature === 'radius';
+  void 0; // isLogFeature reserved for future use
   const range = FEATURE_RANGES[selectedFeature || 'temperature'] || FEATURE_RANGES.temperature;
 
   return (
@@ -81,7 +79,7 @@ export default function GaussianCurveChart({
               borderRadius: "8px",
               color: "#fff",
             }}
-            formatter={(value: number) => value.toFixed(6)}
+            formatter={(value: unknown) => typeof value === 'number' ? value.toFixed(6) : String(value)}
             labelFormatter={(value) => {
               if (selectedFeature === 'luminosity') return `光度: ${value.toFixed(4)} L☉`;
               if (selectedFeature === 'radius') return `半径: ${value.toFixed(4)} R☉`;

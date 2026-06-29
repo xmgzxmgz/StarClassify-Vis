@@ -20,7 +20,6 @@ import {
   type StarParams,
   STAR_CLASSES,
   STAR_COLORS,
-  FEATURE_LABELS,
   gaussianPDF,
 } from "@/lib/starSimulator";
 import {
@@ -139,31 +138,31 @@ export default function FeatureAnalyzer() {
     return classifyGNB(model, features);
   }, [model, selectedFeature, currentValue]);
 
-  const distributions = {
-    主序星: {
-      temperature: { mean: 5800, std: 2500 },
-      luminosity: { mean: 1.0, std: 1.2 },
-      radius: { mean: 1.0, std: 0.6 },
-      mass: { mean: 1.0, std: 0.6 },
-      colorIndex: { mean: 0.65, std: 0.4 },
-    },
-    红巨星: {
-      temperature: { mean: 4500, std: 1500 },
-      luminosity: { mean: 30, std: 25 },
-      radius: { mean: 15, std: 12 },
-      mass: { mean: 1.1, std: 0.5 },
-      colorIndex: { mean: 1.2, std: 0.4 },
-    },
-    白矮星: {
-      temperature: { mean: 12000, std: 6000 },
-      luminosity: { mean: 0.02, std: 0.015 },
-      radius: { mean: 0.015, std: 0.008 },
-      mass: { mean: 0.8, std: 0.3 },
-      colorIndex: { mean: 0.0, std: 0.35 },
-    },
-  };
-
   const currentProbabilityDensities = useMemo(() => {
+    const distributions = {
+      主序星: {
+        temperature: { mean: 5800, std: 2500 },
+        luminosity: { mean: 1.0, std: 1.2 },
+        radius: { mean: 1.0, std: 0.6 },
+        mass: { mean: 1.0, std: 0.6 },
+        colorIndex: { mean: 0.65, std: 0.4 },
+      },
+      红巨星: {
+        temperature: { mean: 4500, std: 1500 },
+        luminosity: { mean: 30, std: 25 },
+        radius: { mean: 15, std: 12 },
+        mass: { mean: 1.1, std: 0.5 },
+        colorIndex: { mean: 1.2, std: 0.4 },
+      },
+      白矮星: {
+        temperature: { mean: 12000, std: 6000 },
+        luminosity: { mean: 0.02, std: 0.015 },
+        radius: { mean: 0.015, std: 0.008 },
+        mass: { mean: 0.8, std: 0.3 },
+        colorIndex: { mean: 0.0, std: 0.35 },
+      },
+    };
+
     const densities: Record<string, number> = {};
 
     for (const starClass of STAR_CLASSES) {
