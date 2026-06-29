@@ -1,7 +1,25 @@
-/.history
-
+# OS
 .DS_Store
 
+# IDE
+.idea/
+.vscode/
+.history/
+.trae/
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build
+dist/
+.vite/
+
+# Data
+datasets/
+*.csv
+
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -11,14 +29,9 @@ __pycache__/
 venv/
 env/
 
+# Env
 .env
 .env.*
 
-node_modules/
-dist/
-.vite/
-pnpm-lock.yaml
-
+# Docker
 postgres-data/
-datasets/allStar-dr17-synspec_rev1.fits
-datasets/
