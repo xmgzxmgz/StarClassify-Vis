@@ -1,3 +1,10 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-2bbc8a.svg)](LICENSE)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Stars](https://img.shields.io/github/stars/xmgzxmgz/StarClassify-Vis?style=social)
+![Last Commit](https://img.shields.io/github/last-commit/xmgzxmgz/StarClassify-Vis)
+
 # StarClassify-Vis：恒星分类可视化实验台（全栈重建版）
 
 本仓库已按 PRD/技术架构/页面设计文档完成“推倒重建”：
